@@ -1,0 +1,155 @@
+:host {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: block;
+}
+
+.backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(16, 24, 28, 0.5);
+}
+
+.sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 560px;
+    margin: 0 auto;
+    background: var(--color-surface);
+    border-radius: 20px 20px 0 0;
+    padding: 0.6rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+    font-family: 'Inter', sans-serif;
+    color: var(--color-ink);
+}
+
+.sheet-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-border);
+    margin: 0.4rem auto 0.9rem;
+}
+
+.sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+}
+
+.sheet-header h2 {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    margin: 0;
+    color: var(--color-primary-dark);
+}
+
+.btn-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--color-bg);
+    color: var(--color-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.saldo-info {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    margin: 0 0 1rem;
+}
+
+.saldo-info strong {
+    color: var(--color-ink);
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.form-group {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+    margin-bottom: 0.35rem;
+}
+
+.form-group input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: var(--color-ink);
+    background: transparent;
+    padding: 0.2rem 0;
+}
+
+.metodo-chips {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.8rem 0;
+}
+
+.metodo-chip {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.6rem;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.metodo-chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.form-error {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-debt);
+    font-size: 0.85rem;
+    padding: 0.7rem 0 0.2rem;
+}
+
+.btn-confirmar {
+    width: 100%;
+    margin-top: 1rem;
+    border: none;
+    border-radius: 13px;
+    background: var(--color-primary);
+    color: white;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.8rem;
+    cursor: pointer;
+}
+
+.btn-confirmar:disabled {
+    opacity: 0.6;
+}

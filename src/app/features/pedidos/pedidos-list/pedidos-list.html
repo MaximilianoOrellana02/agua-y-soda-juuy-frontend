@@ -1,0 +1,118 @@
+<div class="page">
+    <header class="page-header">
+        <a routerLink="/hoy" class="btn-icon" aria-label="Volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h1>Pedidos</h1>
+        <button class="btn-icon" (click)="toggleForm()" aria-label="Nuevo pedido">
+            <i class="bi" [class.bi-plus-lg]="!mostrarForm()" [class.bi-x-lg]="mostrarForm()"></i>
+        </button>
+    </header>
+
+    @if (mostrarForm()) {
+    <div class="add-card">
+        <h2 class="add-card-title">Nuevo pedido</h2>
+
+        @if (!clienteSeleccionado()) {
+        <div class="cliente-search-section">
+            <div class="search-input-wrapper">
+                <i class="bi bi-search"></i>
+                <input type="text" [value]="busquedaCliente()" (input)="busquedaCliente.set($any($event.target).value)"
+                    placeholder="Buscar cliente (nombre o dirección)..." />
+                @if (busquedaCliente()) {
+                <button type="button" class="btn-clear-search" (click)="busquedaCliente.set('')"
+                    aria-label="Limpiar búsqueda">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+                }
+            </div>
+
+            <div class="cliente-search-list">
+                @for (c of clientesFiltrados(); track c.id) {
+                <button type="button" class="cliente-option" (click)="seleccionarCliente(c)">
+                    <div class="cliente-option-info">
+                        <span class="cliente-option-nombre">{{ nombreCliente(c) }}</span>
+                        <span class="cliente-option-direccion">
+                            <i class="bi bi-geo-alt"></i> {{ c.direccion || 'Sin dirección' }}
+                        </span>
+                    </div>
+                    <i class="bi bi-plus-circle cliente-option-icon"></i>
+                </button>
+                } @empty {
+                <div class="search-empty">
+                    <i class="bi bi-person-x"></i>
+                    <span>No se encontraron clientes</span>
+                </div>
+                }
+            </div>
+        </div>
+        } @else {
+        <div class="cliente-seleccionado">
+            <div class="cliente-badge">
+                <div class="cliente-avatar">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="cliente-datos">
+                    <span class="cliente-label">Cliente</span>
+                    <span class="cliente-nombre">{{ nombreCliente(clienteSeleccionado()!) }}</span>
+                    @if (clienteSeleccionado()!.direccion) {
+                    <span class="cliente-dir"><i class="bi bi-geo-alt"></i> {{ clienteSeleccionado()!.direccion
+                        }}</span>
+                    }
+                </div>
+            </div>
+            <button type="button" class="btn-cambiar" (click)="deseleccionarCliente()">
+                <i class="bi bi-arrow-repeat"></i> Cambiar
+            </button>
+        </div>
+
+        <div class="detalle-input-wrapper">
+            <input type="text" [(ngModel)]="detalleNuevo" name="detalle"
+                placeholder="Detalle del pedido (ej: 1 bidón de agua 20L)" />
+        </div>
+
+        <button class="btn-add-full" (click)="agregar()" [disabled]="guardando()">
+            <i class="bi bi-plus-lg"></i> {{ guardando() ? 'Guardando...' : 'Agregar pedido' }}
+        </button>
+        }
+    </div>
+    }
+
+    @if (error()) {
+    <div class="form-error"><i class="bi bi-exclamation-circle"></i> {{ error() }}</div>
+    }
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (!cargando() && pedidos().length === 0) {
+    <div class="state-message empty">
+        <i class="bi bi-telephone"></i>
+        <p>No hay pedidos pendientes</p>
+    </div>
+    }
+
+    <ul class="pedido-list">
+        @for (p of pedidos(); track p.id) {
+        <li class="pedido-card">
+            <div class="pedido-info">
+                <span class="pedido-cliente">{{ nombreCliente(p.cliente) }}</span>
+                @if (p.detalle) {
+                <span class="pedido-detalle"><i class="bi bi-box-seam"></i> {{ p.detalle }}</span>
+                }
+            </div>
+            <div class="pedido-actions">
+                <button class="btn-eliminar" (click)="eliminar(p)" aria-label="Cancelar">
+                    <i class="bi bi-trash"></i>
+                </button>
+                <button class="btn-entregado" (click)="irAEntregar(p)">
+                    <i class="bi bi-truck"></i> Entregar
+                </button>
+            </div>
+        </li>
+        }
+    </ul>
+</div>

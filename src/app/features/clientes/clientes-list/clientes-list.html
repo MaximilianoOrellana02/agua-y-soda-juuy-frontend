@@ -1,0 +1,111 @@
+<div class="page">
+    <header class="page-header">
+        <h1>Clientes</h1>
+        <a routerLink="/clientes/nuevo" class="btn-add" aria-label="Nuevo cliente">
+            <i class="bi bi-plus-lg"></i>
+        </a>
+    </header>
+
+    <div class="search-bar">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Buscar cliente..." [value]="busqueda()"
+            (input)="onBusqueda($any($event.target).value)" />
+    </div>
+    @if (deudaVieja().length > 0) {
+    <button class="banner-deuda" [class.active]="filtroDeudaViejaActivo()" (click)="toggleFiltroDeudaVieja()">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>
+            {{ deudaVieja().length }} cliente{{ deudaVieja().length === 1 ? '' : 's' }}
+            con deuda de +30 días sin pagar
+        </span>
+        <i class="bi" [class.bi-chevron-down]="!filtroDeudaViejaActivo()"
+            [class.bi-x-lg]="filtroDeudaViejaActivo()"></i>
+    </button>
+    }
+
+    <div class="day-filter">
+        <button class="day-chip" [class.active]="diaSeleccionado() === ''"
+            (click)="cambiarDia('')">Todos</button>
+        @for (d of dias; track d.valor) {
+        <button class="day-chip" [class.active]="diaSeleccionado() === d.valor"
+            (click)="cambiarDia(d.valor)">{{ d.etiqueta.slice(0, 3) }}</button>
+        }
+        <button class="day-chip restaurante-chip" [class.active]="diaSeleccionado() === 'restaurantes'"
+            (click)="cambiarDia('restaurantes')">
+            <i class="bi bi-shop"></i> Restaurantes
+        </button>
+    </div>
+
+
+
+
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (error()) {
+    <div class="state-message error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+    </div>
+    }
+
+    @if (!cargando() && clientesFiltrados.length === 0 && !error()) {
+    <div class="state-message empty">
+        <i class="bi bi-people"></i>
+        <p>No hay clientes para mostrar</p>
+    </div>
+    }
+
+    <ul class="client-list">
+        @for (cliente of clientesMostrados; track cliente.id) {
+        <li class="client-card" [class.is-debt]="cliente.saldoActual > 0" [class.is-credit]="cliente.saldoActual < 0"
+            (click)="irADetalle(cliente.id)">
+            <div class="status-bar"></div>
+
+            <div class="client-info">
+                <span class="client-name">{{ cliente.apellido }}, {{ cliente.nombre }}</span>
+                <span class="client-address">
+                    <i class="bi bi-geo-alt"></i>
+                    {{ cliente.direccion || 'Sin dirección registrada' }}
+                </span>
+            </div>
+
+            <div class="client-side">
+                <div class="amount">
+                    <span class="amount-value">{{ cliente.saldoActual | number:'1.0-0' }}</span>
+                    <span class="amount-label">
+                        {{ cliente.saldoActual > 0 ? 'debe' : cliente.saldoActual < 0 ? 'a favor' : 'al día' }} </span>
+                </div>
+
+                @if (cliente.telefono) {
+                <a [href]="'tel:' + cliente.telefono" class="btn-call" aria-label="Llamar"
+                    (click)="llamar($event, cliente.telefono!)">
+                    <i class="bi bi-telephone-fill"></i>
+                </a>
+                }
+            </div>
+        </li>
+        }
+    </ul>
+
+    @if (!cargando() && hayMasClientes) {
+    <button class="btn-load-more" (click)="verMas()">
+        Ver más ({{ cantidadRestante }} restantes)
+    </button>
+    }
+    <div class="print-only">
+        <ol>
+            @for (cliente of clientesFiltrados; track cliente.id) {
+            <li>
+                <strong>{{ cliente.apellido }}, {{ cliente.nombre }}</strong><br>
+                {{ cliente.direccion || 'Sin dirección registrada' }}
+                @if (cliente.telefono) {<br>{{ cliente.telefono }}}
+            </li>
+            }
+        </ol>
+    </div>
+</div>

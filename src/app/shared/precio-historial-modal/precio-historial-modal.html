@@ -1,0 +1,35 @@
+<div class="backdrop" (click)="cerrar.emit()"></div>
+
+<div class="sheet">
+    <div class="sheet-handle"></div>
+
+    <div class="sheet-header">
+        <h2>Historial de precios</h2>
+        <button class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <p class="subtitulo">{{ nombreProducto() }}</p>
+
+    @if (ordenados.length === 0) {
+    <p class="sin-datos">No hay cambios de precio registrados</p>
+    } @else {
+    <div class="timeline">
+        @for (p of ordenados; track p.id) {
+        <div class="timeline-item">
+            <div class="timeline-dot" [class.confianza]="p.tipoCliente === 'confianza'"></div>
+            <div class="timeline-content">
+                <div class="timeline-top">
+                    <span class="badge-tipo" [class.confianza]="p.tipoCliente === 'confianza'">
+                        {{ p.tipoCliente === 'confianza' ? 'Confianza' : 'Particular' }}
+                    </span>
+                    <span class="timeline-precio">${{ p.precio }}</span>
+                </div>
+                <span class="timeline-fecha">{{ p.fechaDesde | date:'d MMM yyyy, HH:mm' }}</span>
+            </div>
+        </div>
+        }
+    </div>
+    }
+</div>

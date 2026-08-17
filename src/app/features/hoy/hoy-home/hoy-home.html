@@ -1,0 +1,105 @@
+<div class="page">
+    <header class="page-header">
+        <div>
+            <span class="fecha-texto">{{ fechaHoyTexto }}</span>
+            <h1>Hoy</h1>
+        </div>
+        @if (!cargando() && !error()) {
+        <div class="header-actions">
+            <button class="btn-header-action" [class.active]="incluirRestaurantes()" (click)="toggleRestaurantes()"
+                aria-label="Toggle restaurantes en lista de hoy">
+                <i class="bi bi-shop"></i> {{ incluirRestaurantes() ? '' : '+' }}
+            </button>
+            @if (paradasPendientes().length > 0) {
+            <button class="btn-header-action" (click)="abrirMapa()" aria-label="Ver mapa de ruta">
+                <i class="bi bi-map"></i> Ver mapa
+            </button>
+            }
+            <a routerLink="/pedidos" class="btn-header-action" aria-label="Ver pedidos">
+                <i class="bi bi-telephone"></i> Pedidos
+            </a>
+        </div>
+        }
+    </header>
+
+    @if (mostrarMapa()) {
+    <app-ruta-mapa-modal [clientes]="paradasPendientes()" (cerrar)="cerrarMapa()"></app-ruta-mapa-modal>
+    }
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (error()) {
+    <div class="state-message error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+    </div>
+    }
+
+    @if (!cargando() && !error()) {
+    <div class="progreso-card">
+        <div class="progreso-top">
+            <span class="progreso-numero">{{ visitadasHoy() }}</span>
+            <span class="progreso-total">de {{ paradasHoy().length }} paradas hechas</span>
+        </div>
+        <div class="progreso-track">
+            <div class="progreso-fill" [style.width.%]="progresoPorcentaje()"></div>
+        </div>
+    </div>
+
+    @if (resumen(); as r) {
+    <div class="stats-grid">
+        <div class="stat-box">
+            <span class="stat-label">Cobrado</span>
+            <span class="stat-value">${{ r.cobrado | number:'1.0-0' }}</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Entregados</span>
+            <span class="stat-value">{{ r.entregados }}</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Devueltos</span>
+            <span class="stat-value">{{ r.devueltos }}</span>
+        </div>
+    </div>
+    }
+
+    <div class="paradas-header">
+        <h2>Próximas paradas</h2>
+        <span class="paradas-count">{{ paradasPendientes().length }} pendientes</span>
+    </div>
+
+    @if (paradasHoy().length === 0) {
+    <div class="state-message empty">
+        <i class="bi bi-calendar-check"></i>
+        <p>Ningún barrio tiene reparto asignado para hoy</p>
+    </div>
+    } @else if (paradasPendientes().length === 0) {
+    <div class="state-message empty">
+        <i class="bi bi-check-circle"></i>
+        <p>¡Ya visitaste a todos los clientes de hoy!</p>
+    </div>
+    }
+
+    <div class="parada-list">
+        @for (c of paradasPendientes(); track c.id; let i = $index) {
+        <div class="parada-card">
+            <span class="parada-numero">{{ (i + 1).toString().padStart(2, '0') }}</span>
+
+            <div class="parada-info">
+                <a [routerLink]="['/clientes', c.id]" class="parada-nombre">{{ c.nombre }} {{ c.apellido }}</a>
+                <span class="parada-direccion">{{ c.direccion || 'Sin dirección' }}</span>
+                @if (c.saldoActual > 0) {
+                <span class="parada-deuda">Debe ${{ c.saldoActual | number:'1.0-0' }}</span>
+                }
+            </div>
+
+            <a [routerLink]="['/clientes', c.id, 'entrega']" class="btn-entregar">Entregar</a>
+        </div>
+        }
+    </div>
+    }
+</div>

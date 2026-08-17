@@ -1,0 +1,223 @@
+:host {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    color: var(--color-ink);
+}
+
+.page {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 2rem;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.1rem;
+}
+
+.page-header h1 {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--color-primary-dark);
+    margin: 0;
+}
+
+.btn-icon,
+.btn-icon-spacer {
+    width: 40px;
+    height: 40px;
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-primary-dark);
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.filter-chips {
+    display: flex;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+}
+
+.chip {
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.state-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 3rem 1rem;
+    color: var(--color-muted);
+    text-align: center;
+}
+
+.state-message.error {
+    color: var(--color-debt);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.movimiento-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.movimiento-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+}
+
+.movimiento-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.movimiento-card.is-entrada .movimiento-icon {
+    background: #e6f7ef;
+    color: var(--color-credit);
+}
+
+.movimiento-card.is-salida .movimiento-icon {
+    background: #fbecea;
+    color: var(--color-debt);
+}
+
+.movimiento-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.movimiento-producto {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+.movimiento-meta {
+    font-size: 0.72rem;
+    color: var(--color-muted);
+}
+
+.movimiento-motivo {
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    font-style: italic;
+}
+
+.movimiento-cantidad {
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.movimiento-card.is-entrada .movimiento-cantidad {
+    color: var(--color-credit);
+}
+
+.movimiento-card.is-salida .movimiento-cantidad {
+    color: var(--color-debt);
+}
+
+.btn-exportar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface);
+    color: #1a7f37;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.7rem;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.btn-exportar:disabled {
+    opacity: 0.6;
+}
+
+.btn-exportar:active {
+    background: #eafaf0;
+}
+
+.periodo-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.periodo-selector select {
+    flex: 1;
+    border: 1.5px solid var(--color-border);
+    border-radius: 12px;
+    padding: 0.5rem 0.7rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    outline: none;
+}
+
+.periodo-selector select:disabled {
+    opacity: 0.5;
+}

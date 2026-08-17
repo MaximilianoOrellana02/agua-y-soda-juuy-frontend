@@ -1,0 +1,9 @@
+@if (notificationService.notificacion(); as n) {
+<div class="toast" [class.is-error]="n.tipo === 'error'" [class.is-info]="n.tipo === 'info'">
+    <i class="bi" [class.bi-wifi-off]="n.tipo === 'error'" [class.bi-info-circle]="n.tipo === 'info'"></i>
+    <span>{{ n.mensaje }}</span>
+    <button (click)="notificationService.cerrar()" aria-label="Cerrar">
+        <i class="bi bi-x"></i>
+    </button>
+</div>
+}

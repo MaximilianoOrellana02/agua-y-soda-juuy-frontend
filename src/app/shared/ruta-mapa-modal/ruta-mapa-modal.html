@@ -1,0 +1,63 @@
+<div class="backdrop" (click)="cerrar.emit()"></div>
+
+<div class="sheet">
+  <div class="sheet-handle"></div>
+
+  <div class="sheet-header">
+    <h2>Ruta óptima</h2>
+    <button class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  @if (calculandoRuta()) {
+  <div class="calculando">
+    <div class="spinner"></div>
+    <p>Calculando la mejor ruta según tu ubicación...</p>
+  </div>
+  }
+
+  @if (errorRuta()) {
+  <div class="aviso-error-bloque">
+    <p><i class="bi bi-info-circle"></i> {{ errorRuta() }}</p>
+    <button class="btn-reintentar" (click)="reintentar()">
+      <i class="bi bi-arrow-clockwise"></i> Reintentar
+    </button>
+  </div>
+  }
+
+  <div #mapaContenedor class="mapa-ruta"></div>
+
+  @if (!calculandoRuta()) {
+    @if (distanciaKm() > 0) {
+    <div class="resumen-ruta">
+      <span><i class="bi bi-signpost-2"></i> {{ distanciaKm() | number:'1.1-1' }} km</span>
+      <span><i class="bi bi-clock"></i> ~{{ duracionMin() | number:'1.0-0' }} min</span>
+    </div>
+
+    <button class="btn-navegar" (click)="iniciarNavegacion()">
+      <i class="bi bi-compass"></i> Iniciar navegación en Google Maps
+    </button>
+    }
+
+    <button class="btn-whatsapp-modal" (click)="compartirPorWhatsapp()">
+      <i class="bi bi-whatsapp"></i> Compartir ruta por WhatsApp
+    </button>
+  }
+
+  @if (clientesSinUbicacion() > 0) {
+  <p class="aviso-sin-ubicacion">
+    <i class="bi bi-info-circle"></i>
+    {{ clientesSinUbicacion() }} cliente(s) sin ubicación registrada, no están en la ruta
+  </p>
+  }
+
+  <div class="lista-rapida">
+    @for (c of clientesOrdenados(); track c.id; let i = $index) {
+    <button class="cliente-chip" (click)="irACliente(c.id)">
+      <span class="chip-numero">{{ i + 1 }}</span>
+      <span>{{ c.apellido }}, {{ c.nombre }}</span>
+    </button>
+    }
+  </div>
+</div>

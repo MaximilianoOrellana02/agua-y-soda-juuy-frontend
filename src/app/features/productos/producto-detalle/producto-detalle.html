@@ -1,0 +1,143 @@
+<div class="page">
+    <header class="page-header">
+        <a routerLink="/productos" class="btn-icon" aria-label="Volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h1>Producto</h1>
+        @if (!editando() && producto()) {
+        <button class="btn-icon" (click)="activarEdicion()" aria-label="Editar">
+            <i class="bi bi-pencil"></i>
+        </button>
+        } @else {
+        <span class="btn-icon-spacer"></span>
+        }
+    </header>
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (error() && !producto()) {
+    <div class="state-message error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+    </div>
+    }
+
+    @if (producto(); as p) {
+    <div class="profile-card">
+        <div class="product-icon-lg">
+            <i class="bi" [class.bi-droplet-fill]="p.esRetornable" [class.bi-box-seam-fill]="!p.esRetornable"></i>
+        </div>
+        <div class="profile-name">{{ p.nombre }}</div>
+        @if (p.esRetornable) {
+        <span class="product-tag">Retornable</span>
+        <div class="stock-card">
+            <div class="stock-info">
+                <span class="stock-label">Stock actual</span>
+                <span class="stock-value" [class.stock-bajo]="p.stockActual <= p.stockMinimo && p.stockMinimo > 0">
+                    {{ p.stockActual }}
+                </span>
+            </div>
+            <div class="stock-buttons">
+                <button class="btn-stock entrada" (click)="abrirMovimiento('entrada')">
+                    <i class="bi bi-plus-lg"></i> Entrada
+                </button>
+                <button class="btn-stock salida" (click)="abrirMovimiento('salida')">
+                    <i class="bi bi-dash-lg"></i> Salida
+                </button>
+            </div>
+        </div>
+
+        @if (mostrarMovimiento()) {
+        <div class="movimiento-overlay" (click)="cerrarMovimiento()"></div>
+        <div class="movimiento-sheet">
+            <h3>{{ tipoMovimiento() === 'entrada' ? 'Registrar entrada' : 'Registrar salida' }}</h3>
+
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" min="1" [(ngModel)]="cantidadMovimiento" name="cantidadMovimiento" />
+            </div>
+
+            <div class="form-group">
+                <label>Motivo {{ tipoMovimiento() === 'salida' ? '(obligatorio)' : '(opcional)' }}</label>
+                <input type="text" [(ngModel)]="motivoMovimiento" name="motivoMovimiento"
+                    [placeholder]="tipoMovimiento() === 'entrada' ? 'Ej: Recarga en planta' : 'Ej: Botella rota'" />
+            </div>
+
+            @if (errorMovimiento()) {
+            <div class="form-error">
+                <i class="bi bi-exclamation-circle"></i> {{ errorMovimiento() }}
+            </div>
+            }
+
+            <div class="form-actions">
+                <button class="btn-cancel" (click)="cerrarMovimiento()">Cancelar</button>
+                <button class="btn-save" [disabled]="guardandoMovimiento()" (click)="confirmarMovimiento()">
+                    {{ guardandoMovimiento() ? 'Guardando...' : 'Confirmar' }}
+                </button>
+            </div>
+        </div>
+        }
+        }
+    </div>
+
+    @if (!editando()) {
+    <div class="fields-card">
+        <div class="field-row">
+            <i class="bi bi-tag-fill"></i>
+            <div>
+                <span class="field-label">Precio</span>
+                <span class="field-value price-mono">{{ p | precioParticular }}</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-ver-historial-precios" (click)="abrirHistorialPrecios()">
+        <i class="bi bi-graph-up"></i> Ver historial de precios
+    </button>
+    }
+
+
+    @if (mostrarHistorialPrecios()) {
+    <app-precio-historial-modal [nombreProducto]="p.nombre" [precios]="p.precios ?? []"
+        (cerrar)="cerrarHistorialPrecios()"></app-precio-historial-modal>
+    }
+
+    @if (editando()) {
+    <form class="fields-card" (ngSubmit)="guardar()">
+        <div class="form-group">
+            <label for="nombre">Nombre del producto *</label>
+            <input id="nombre" type="text" [(ngModel)]="nombre" name="nombre" />
+        </div>
+        <div class="form-group">
+            <label for="precioParticular">Precio *</label>
+            <input id="precioParticular" type="number" min="0" step="0.01" [(ngModel)]="precioParticular"
+                name="precioParticular" />
+        </div>
+        <div class="form-group">
+            <label for="stockMinimo">Alertar cuando el stock baje de</label>
+            <input id="stockMinimo" type="number" min="0" [(ngModel)]="stockMinimo" name="stockMinimo" />
+        </div>
+
+        @if (error()) {
+        <div class="form-error">
+            <i class="bi bi-exclamation-circle"></i> {{ error() }}
+        </div>
+        }
+
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="guardando()">
+                {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+        </div>
+        <button type="button" class="btn-deactivate" (click)="desactivar()">
+            <i class="bi bi-trash"></i> Desactivar producto
+        </button>
+    </form>
+    }
+    }
+</div>

@@ -1,0 +1,267 @@
+<div class="page">
+    <header class="page-header">
+        <a routerLink="/clientes" class="btn-icon" aria-label="Volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h1>Cliente</h1>
+        @if (!editando() && cliente()) {
+        <button class="btn-icon" (click)="activarEdicion()" aria-label="Editar">
+            <i class="bi bi-pencil"></i>
+        </button>
+        } @else {
+        <span class="btn-icon-spacer"></span>
+        }
+    </header>
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (error() && !cliente()) {
+    <div class="state-message error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+    </div>
+    }
+
+    @if (cliente(); as c) {
+    <div class="profile-card">
+        <h2 class="profile-name">{{ c.nombre }} {{ c.apellido }}</h2>
+        @if (c.direccion || c.barrio) {
+        <span class="profile-address">{{ c.direccion }}{{ c.direccion && c.barrio ? ', ' : '' }}{{ c.barrio?.nombre
+            }}</span>
+        }
+        <div class="profile-tags">
+            @if (diasRepartoTexto) {
+            <span class="tag-chip">{{ diasRepartoTexto }}</span>
+            }
+            <div class="tag-chip tag-balance" [class.is-debt]="c.saldoActual > 0" [class.is-credit]="c.saldoActual < 0">
+                <span class="amount-value">{{ c.saldoActual | number:'1.0-0' }}</span>
+                <span class="amount-label">{{ c.saldoActual > 0 ? 'debe' : c.saldoActual < 0 ? 'a favor' : 'al día'
+                        }}</span>
+            </div>
+        </div>
+    </div>
+    @if (!editando()) {
+    <div class="action-buttons">
+        <a [routerLink]="['/clientes', c.id, 'entrega']" class="btn-new-entrega">
+            <i class="bi bi-truck"></i> Nueva entrega
+        </a>
+        @if (c.telefono) {
+        <button class="btn-whatsapp" (click)="abrirWhatsapp(c)">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+        </button>
+        }
+    </div>
+    @if (c.saldoActual > 0) {
+    <button class="btn-saldar" (click)="abrirPago()">
+        <i class="bi bi-check-circle"></i> Registrar pago / Saldar deuda
+    </button>
+    }
+    }
+
+    @if (mostrarPago()) {
+    <app-pago-modal [clienteId]="c.id" [nombreCliente]="c.nombre + ' ' + c.apellido" [saldoActual]="c.saldoActual"
+        (cerrar)="cerrarPago()" (pagoRegistrado)="onPagoRegistrado()"></app-pago-modal>
+    }
+
+    <!-- Modo lectura -->
+    @if (!editando()) {
+    <div class="fields-card">
+        <div class="field-row">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+                <span class="field-label">Dirección</span>
+                <span class="field-value">{{ c.direccion || 'Sin registrar' }}, {{ c.barrio?.nombre }}</span>
+            </div>
+        </div>
+        @if ((c.latitud && c.longitud) || ajustandoUbicacion()) {
+        <div class="mapa-wrap">
+            <app-mapa-cliente [latitud]="c.latitud || -24.1858" [longitud]="c.longitud || -65.2995"
+                [editable]="ajustandoUbicacion()" (posicionCambiada)="onPosicionCambiada($event)"></app-mapa-cliente>
+
+            @if (!ajustandoUbicacion()) {
+            <button class="btn-ajustar-mapa" (click)="activarAjusteUbicacion()">
+                <i class="bi bi-pin-map"></i> Ajustar ubicación
+            </button>
+            } @else {
+            <div class="mapa-actions">
+                <p class="mapa-hint"><i class="bi bi-hand-index-thumb"></i> Tocá o hacé clic en el mapa para posicionar
+                    el marcador
+                </p>
+                <div class="mapa-buttons">
+                    <button class="btn-cancel" (click)="cancelarAjusteUbicacion()">Cancelar</button>
+                    <button class="btn-save" [disabled]="!nuevaUbicacion()"
+                        (click)="guardarUbicacion()">Guardar</button>
+                </div>
+            </div>
+            }
+        </div>
+        } @else {
+        <div class="sin-mapa-wrap">
+            <button class="btn-ajustar-mapa" (click)="activarAjusteUbicacion()">
+                <i class="bi bi-pin-map"></i> Agregar al mapa manualmente
+            </button>
+        </div>
+        }
+    </div>
+
+    <div class="movimientos-card">
+        <div class="movimientos-header">
+            <h3 class="movimientos-title">Movimientos</h3>
+            <a [routerLink]="['/clientes', c.id, 'historial']" class="btn-ver-todos">
+                Ver todos <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+        @if (movimientosCargando()) {
+        <div class="mov-empty">
+            <div class="spinner"></div>
+        </div>
+        } @else if (movimientos().length === 0) {
+        <div class="mov-empty">
+            <i class="bi bi-clock-history"></i>
+            <p>No hay movimientos recientes</p>
+        </div>
+        } @else {
+        <div class="movimientos-list">
+            @for (m of movimientos(); track m.id) {
+            <div class="movimiento-row">
+                <span class="mov-date">{{ m.fechaTexto }}</span>
+                <div class="mov-info">
+                    <span class="mov-title">{{ m.titulo }}</span>
+                    <span class="mov-sub">{{ m.subtitulo }}</span>
+                </div>
+                <span class="mov-amount">${{ m.monto | number:'1.0-0' }}</span>
+            </div>
+            }
+        </div>
+        }
+    </div>
+    }
+
+    <!-- Modo edición -->
+    @if (editando()) {
+    <form (ngSubmit)="guardar()" class="form-container">
+        <!-- SECCIÓN 1: Quién es -->
+        <div class="form-section">
+            <div class="section-header">
+                <span class="section-title">Quién es</span>
+                <span class="section-badge required">* OBLIGATORIO</span>
+            </div>
+            <div class="grid-2">
+                <div class="form-cell">
+                    <label for="nombre">NOMBRE *</label>
+                    <input id="nombre" type="text" [(ngModel)]="form.nombre" name="nombre" placeholder="Juan" />
+                </div>
+                <div class="form-cell">
+                    <label for="apellido">APELLIDO *</label>
+                    <input id="apellido" type="text" [(ngModel)]="form.apellido" name="apellido" placeholder="Pérez" />
+                </div>
+                <div class="form-cell">
+                    <label for="telefono">TELÉFONO</label>
+                    <input id="telefono" type="tel" [(ngModel)]="form.telefono" name="telefono" placeholder="388 412 3456" />
+                </div>
+                <div class="form-cell">
+                    <label for="tipoCliente">TIPO DE CLIENTE</label>
+                    <select id="tipoCliente" [(ngModel)]="form.tipoCliente" name="tipoCliente">
+                        <option value="particular">Particular</option>
+                        <option value="confianza">De confianza</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: Dónde está -->
+        <div class="form-section">
+            <div class="section-header">
+                <span class="section-title">Dónde está</span>
+            </div>
+            <div class="grid-2">
+                <div class="form-cell full-width">
+                    <label for="direccion">DIRECCIÓN</label>
+                    <input id="direccion" type="text" [(ngModel)]="form.direccion" name="direccion" placeholder="Belgrano 123" />
+                </div>
+                <div class="form-cell">
+                    <label for="localidad">LOCALIDAD</label>
+                    <select id="localidad" [(ngModel)]="form.localidad" name="localidad">
+                        <option value="">Sin asignar</option>
+                        <option value="San Salvador">San Salvador</option>
+                        <option value="Palpalá">Palpalá</option>
+                    </select>
+                </div>
+                <div class="form-cell">
+                    <label for="barrio">BARRIO</label>
+                    <select id="barrio" [(ngModel)]="form.barrioId" name="barrio">
+                        <option value="">Sin asignar</option>
+                        @for (b of barrios(); track b.id) {
+                        <option [value]="b.id">{{ b.nombre }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-cell full-width">
+                    <label for="categoria">CATEGORÍA</label>
+                    <select id="categoria" [(ngModel)]="form.categoria" name="categoria">
+                        <option value="domicilio">Domicilio</option>
+                        <option value="restaurante">Restaurante</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: Marcar en el mapa -->
+        <div class="form-section map-section">
+            <div class="section-header map-header" (click)="toggleMapaEdicion()">
+                <div class="map-title-group">
+                    <i class="bi bi-geo-alt-fill icon-pin"></i>
+                    <div>
+                        <div class="map-title">Ubicación en el mapa</div>
+                        <div class="map-subtitle">
+                            Opcional · <span class="tag-recommended">(Recomendado)</span>
+                            @if (form.latitud && form.longitud) {
+                                · <span class="tag-marked"><i class="bi bi-check-circle-fill"></i> Marcado</span>
+                            } @else {
+                                · <span class="tag-unmarked">sin ubicar</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-toggle-map" [attr.aria-label]="mapaEdicionAbierto() ? 'Ocultar mapa' : 'Mostrar mapa'">
+                    <i class="bi" [class.bi-dash-lg]="mapaEdicionAbierto()" [class.bi-plus-lg]="!mapaEdicionAbierto()"></i>
+                </button>
+            </div>
+
+            @if (mapaEdicionAbierto()) {
+                <div class="mapa-wrap">
+                    <app-mapa-cliente 
+                        [latitud]="form.latitud || -24.1858" 
+                        [longitud]="form.longitud || -65.2995"
+                        [editable]="true" 
+                        (posicionCambiada)="onPosicionEditCambiada($event)">
+                    </app-mapa-cliente>
+                    <p class="mapa-hint">
+                        <i class="bi bi-hand-index-thumb"></i> Tocá en el mapa para ubicar al cliente
+                    </p>
+                </div>
+            }
+        </div>
+
+        @if (error()) {
+        <div class="form-error">
+            <i class="bi bi-exclamation-circle"></i> {{ error() }}
+        </div>
+        }
+
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="cancelarEdicion()">
+                Cancelar
+            </button>
+            <button type="submit" class="btn-save" [disabled]="guardando()">
+                {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+        </div>
+    </form>
+    }
+    }
+</div>

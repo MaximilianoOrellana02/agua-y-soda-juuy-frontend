@@ -1,0 +1,75 @@
+<div class="page">
+    <header class="page-header">
+        <h1>Historial</h1>
+    </header>
+
+    <div class="filter-chips">
+        <button class="chip" [class.active]="filtro() === 'hoy'" (click)="cambiarFiltro('hoy')">Hoy</button>
+        <button class="chip" [class.active]="filtro() === 'semana'" (click)="cambiarFiltro('semana')">7 días</button>
+        <button class="chip" [class.active]="filtro() === 'mes'" (click)="cambiarFiltro('mes')">Este mes</button>
+        <button class="chip" [class.active]="filtro() === 'todos'" (click)="cambiarFiltro('todos')">Todos</button>
+    </div>
+
+    <button class="btn-dashboard" (click)="abrirDashboard()">
+        <i class="bi bi-bar-chart-fill"></i> Ver resumen
+    </button>
+
+    @if (mostrarDashboard()) {
+    <app-dashboard-modal [desde]="rangoFechas().desde" [hasta]="rangoFechas().hasta"
+        [etiquetaPeriodo]="etiquetaFiltroActual()" [esMesActual]="filtro() === 'mes'"
+        (cerrar)="cerrarDashboard()"></app-dashboard-modal>}
+
+
+    <button class="btn-exportar" (click)="exportarExcel()" [disabled]="exportando()">
+        <i class="bi bi-file-earmark-excel"></i>
+        {{ exportando() ? 'Generando...' : 'Exportar a Excel' }}
+    </button>
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (error()) {
+    <div class="state-message error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+    </div>
+    }
+
+    @if (!cargando() && entregas().length === 0 && !error()) {
+    <div class="state-message empty">
+        <i class="bi bi-clock-history"></i>
+        <p>No hay entregas en este período</p>
+    </div>
+    }
+
+    <ul class="entrega-list">
+        @for (entrega of entregas(); track entrega.id) {
+        <li class="entrega-card" [routerLink]="['/clientes', entrega.clienteId]">
+            <div class="entrega-info">
+                <span class="entrega-cliente">
+                    {{ entrega.cliente?.apellido }}, {{ entrega.cliente?.nombre }}
+                </span>
+                <span class="entrega-meta">
+                    {{ entrega.fecha | date:'d MMM, HH:mm' }} · {{ entrega.usuario?.nombreCompleto }}
+                    <i class="bi" [class.bi-cash]="entrega.metodoPago === 'efectivo'"
+                        [class.bi-bank]="entrega.metodoPago === 'transferencia'"></i>
+                </span>
+            </div>
+
+            <div class="entrega-amounts">
+                <span class="amount-total">${{ entrega.importeTotal }}</span>
+                <span class="amount-paid">Pagó ${{ entrega.montoPagado }}</span>
+            </div>
+        </li>
+        }
+    </ul>
+
+    @if (!cargando() && hayMasPaginas()) {
+    <button class="btn-load-more" (click)="verMas()" [disabled]="cargandoMas()">
+        {{ cargandoMas() ? 'Cargando...' : 'Ver más' }}
+    </button>
+    }
+</div>

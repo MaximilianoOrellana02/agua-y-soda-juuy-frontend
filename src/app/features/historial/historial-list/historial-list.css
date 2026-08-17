@@ -1,0 +1,228 @@
+:host {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    color: var(--color-ink);
+}
+
+.page {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 2rem;
+}
+
+.page-header {
+    margin-bottom: 1rem;
+}
+
+.page-header h1 {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--color-primary-dark);
+}
+
+/* ---------- Filtros ---------- */
+.filter-chips {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.3rem;
+    margin-bottom: 1.1rem;
+}
+
+.chip {
+    flex-shrink: 0;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+/* ---------- Estados ---------- */
+.state-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 3rem 1rem;
+    color: var(--color-muted);
+    text-align: center;
+}
+
+.state-message.error {
+    color: var(--color-debt);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---------- Lista de entregas ---------- */
+.entrega-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.entrega-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    padding: 0.95rem 1.15rem;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+}
+
+.entrega-card:active {
+    transform: scale(0.98);
+}
+
+.entrega-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.entrega-cliente {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--color-ink);
+}
+
+.entrega-meta {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.entrega-amounts {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+}
+
+.btn-exportar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface);
+    color: #1a7f37;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.85rem;
+    border-radius: 13px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.btn-exportar:disabled {
+    opacity: 0.6;
+}
+
+.btn-exportar:active {
+    background: #eafaf0;
+}
+
+.amount-total {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--color-primary-dark);
+}
+
+.amount-paid {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+/* ---------- Ver más ---------- */
+.btn-load-more {
+    width: 100%;
+    margin-top: 0.8rem;
+    padding: 0.85rem;
+    border-radius: 13px;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-load-more:disabled {
+    opacity: 0.6;
+}
+
+.btn-load-more:active:not(:disabled) {
+    background: #eaf6f4;
+}
+
+.btn-dashboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.85rem;
+    border-radius: 13px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.btn-dashboard:active {
+    background: #eaf6f4;
+}
