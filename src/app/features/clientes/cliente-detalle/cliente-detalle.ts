@@ -237,8 +237,8 @@ export default class ClienteDetalle implements OnInit {
         this.editando.set(false);
         this.guardando.set(false);
       },
-      error: () => {
-        this.error.set('No se pudieron guardar los cambios');
+      error: (err) => {
+        this.error.set(err.error?.error ?? 'No se pudieron guardar los cambios');
         this.guardando.set(false);
       },
     });
@@ -268,7 +268,7 @@ export default class ClienteDetalle implements OnInit {
         this.ajustandoUbicacion.set(false);
         this.nuevaUbicacion.set(null);
       },
-      error: () => this.error.set('No se pudo guardar la ubicación'),
+      error: (err) => this.error.set(err.error?.error ?? 'No se pudo guardar la ubicación'),
     });
   }
 

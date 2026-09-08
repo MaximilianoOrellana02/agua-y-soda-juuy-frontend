@@ -68,8 +68,8 @@ export default class MovimientosStockList implements OnInit {
         this.movimientos.set(data);
         this.cargando.set(false);
       },
-      error: () => {
-        this.error.set('No se pudieron cargar los movimientos');
+      error: (err) => {
+        this.error.set(err.error?.error ?? 'No se pudieron cargar los movimientos');
         this.cargando.set(false);
       },
     });

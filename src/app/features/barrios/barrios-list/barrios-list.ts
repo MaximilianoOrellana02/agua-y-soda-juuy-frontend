@@ -62,6 +62,10 @@ export default class BarriosList implements OnInit {
           if (dias.length > 0) {
             this.barrioService.actualizar(barrio.id, { diasVisita: dias }).subscribe({
               next: (actualizado) => this.agregarALista(actualizado),
+              error: (err) => {
+                this.agregarALista(barrio);
+                this.error.set(err.error?.error ?? 'El barrio se creó pero no se pudieron guardar los días');
+              },
             });
           } else {
             this.agregarALista(barrio);
@@ -99,7 +103,7 @@ export default class BarriosList implements OnInit {
         this.barrios.update((lista) => lista.map((b) => (b.id === actualizado.id ? actualizado : b)));
         this.editandoId.set(null);
       },
-      error: () => this.error.set('No se pudo guardar'),
+      error: (err) => this.error.set(err.error?.error ?? 'No se pudo guardar'),
     });
   }
 
@@ -108,11 +112,11 @@ export default class BarriosList implements OnInit {
   }
 
   eliminar(barrio: Barrio) {
-    if (!confirm(`¿Eliminar el barrio "${barrio.nombre}"? Los clientes asignados quedarán sin barrio.`)) return;
+    if (!confirm(`¿Eliminar el barrio "${barrio.nombre}"? Solo se puede eliminar si no tiene clientes activos.`)) return;
 
     this.barrioService.eliminar(barrio.id).subscribe({
       next: () => this.barrios.update((lista) => lista.filter((b) => b.id !== barrio.id)),
-      error: () => this.error.set('No se pudo eliminar el barrio'),
+      error: (err) => this.error.set(err.error?.error ?? 'No se pudo eliminar el barrio'),
     });
   }
 

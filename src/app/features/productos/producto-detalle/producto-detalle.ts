@@ -140,8 +140,8 @@ export default class ProductoDetalle implements OnInit {
         this.editando.set(false);
         this.guardando.set(false);
       },
-      error: () => {
-        this.error.set('No se pudieron guardar los cambios');
+      error: (err) => {
+        this.error.set(err.error?.error ?? 'No se pudieron guardar los cambios');
         this.guardando.set(false);
       },
     });
@@ -154,7 +154,7 @@ export default class ProductoDetalle implements OnInit {
 
     this.productoService.desactivar(actual.id).subscribe({
       next: () => this.router.navigate(['/productos']),
-      error: () => this.error.set('No se pudo desactivar el producto'),
+      error: (err) => this.error.set(err.error?.error ?? 'No se pudo desactivar el producto'),
     });
   }
 

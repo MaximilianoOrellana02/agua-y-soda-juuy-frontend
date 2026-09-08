@@ -85,9 +85,9 @@ export default class ClienteNuevo implements OnInit {
       next: (cliente) => {
         this.router.navigate(['/clientes', cliente.id]);
       },
-      error: () => {
+      error: (err) => {
         this.guardando.set(false);
-        this.error.set('No se pudo crear el cliente');
+        this.error.set(err.error?.error ?? 'No se pudo crear el cliente');
       },
     });
   }

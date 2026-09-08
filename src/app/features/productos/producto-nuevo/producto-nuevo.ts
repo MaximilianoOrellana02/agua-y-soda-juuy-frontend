@@ -41,9 +41,9 @@ export default class ProductoNuevo {
       next: (producto) => {
         this.router.navigate(['/productos', producto.id]);
       },
-      error: () => {
+      error: (err) => {
         this.guardando.set(false);
-        this.error.set('No se pudo crear el producto');
+        this.error.set(err.error?.error ?? 'No se pudo crear el producto');
       },
     });
   }
