@@ -57,6 +57,10 @@
                     <i class="bi" [class.bi-cash]="entrega.metodoPago === 'efectivo'"
                         [class.bi-bank]="entrega.metodoPago === 'transferencia'"></i>
                 </span>
+                @if (entrega.ajusteSaldo; as ajuste) {
+                <span class="entrega-ajuste">Saldo anterior ajustado: ${{ ajuste.saldoEsperado }} → ${{ ajuste.saldoNuevo }}.
+                    {{ ajuste.motivo }}</span>
+                }
             </div>
 
             <div class="entrega-amounts">

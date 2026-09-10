@@ -98,9 +98,18 @@
 
             @if (mapaAbierto()) {
                 <div class="mapa-wrap">
+                    <button type="button" class="btn-current-location" (click)="usarMiUbicacion()"
+                        [disabled]="obteniendoUbicacion() || guardando()">
+                        <i class="bi" [class.bi-crosshair]="!obteniendoUbicacion()"
+                            [class.bi-arrow-repeat]="obteniendoUbicacion()"></i>
+                        {{ obteniendoUbicacion() ? 'Buscando ubicación…' : 'Usar mi ubicación' }}
+                    </button>
+                    @if (errorUbicacion()) {
+                    <p class="location-error" role="alert">{{ errorUbicacion() }}</p>
+                    }
                     <app-mapa-cliente 
-                        [latitud]="form.latitud || -24.1858" 
-                        [longitud]="form.longitud || -65.2995"
+                        [latitud]="form.latitud ?? -24.1858"
+                        [longitud]="form.longitud ?? -65.2995"
                         [editable]="true" 
                         (posicionCambiada)="onPosicionCambiada($event)">
                     </app-mapa-cliente>

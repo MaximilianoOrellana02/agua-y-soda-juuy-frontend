@@ -127,6 +127,8 @@ export default class HistorialList implements OnInit {
           'Monto pagado': h.montoPagado,
           'Saldo final': h.saldoFinal,
           Observación: h.observacion ?? '',
+          'Saldo antes del ajuste': h.ajusteSaldo?.saldoEsperado ?? '',
+          'Motivo del ajuste': h.ajusteSaldo?.motivo ?? '',
         }));
 
         const hoja = XLSX.utils.json_to_sheet(filas);
@@ -134,6 +136,7 @@ export default class HistorialList implements OnInit {
         hoja['!cols'] = [
           { wch: 12 }, { wch: 8 }, { wch: 25 }, { wch: 18 },
           { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 25 },
+          { wch: 20 }, { wch: 35 },
         ];
 
         const libro = XLSX.utils.book_new();

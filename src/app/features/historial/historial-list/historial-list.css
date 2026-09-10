@@ -226,3 +226,9 @@
 .btn-dashboard:active {
     background: #eaf6f4;
 }
+
+.entrega-ajuste {
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}

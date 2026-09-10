@@ -8,6 +8,12 @@ export interface HistorialDetalleInput {
     precioUnitario: number;
 }
 
+export interface AjusteSaldo {
+    saldoEsperado: number;
+    saldoNuevo: number;
+    motivo: string;
+}
+
 export interface HistorialInput {
     clienteId: string;
     montoPagado: number;
@@ -15,6 +21,7 @@ export interface HistorialInput {
     metodoPago?: MetodoPago;
     pedidoId?: string;
     detalles: HistorialDetalleInput[];
+    ajusteSaldo?: AjusteSaldo;
 }
 
 export interface Historial {
@@ -31,6 +38,7 @@ export interface Historial {
     usuario?: { id: string; nombreCompleto: string };
     detalles?: HistorialDetalle[];
     metodoPago: MetodoPago;
+    ajusteSaldo?: AjusteSaldo | null;
 }
 
 export interface HistorialPage {

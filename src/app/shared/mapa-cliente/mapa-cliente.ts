@@ -1,4 +1,4 @@
-import { Component, input, output, afterNextRender, ElementRef, viewChild } from '@angular/core';
+import { Component, input, output, afterNextRender, effect, ElementRef, viewChild } from '@angular/core';
 import * as L from 'leaflet';
 import '../leaftlet-setup';
 
@@ -21,6 +21,17 @@ export default class MapaCliente {
   private marcador?: L.Marker;
 
   constructor() {
+    effect(() => {
+      const latitud = this.latitud();
+      const longitud = this.longitud();
+
+      if (!this.mapa || !this.marcador) return;
+      this.marcador.setLatLng([latitud, longitud]);
+      this.mapa.setView([latitud, longitud], Math.max(this.mapa.getZoom(), 17), {
+        animate: true,
+      });
+    });
+
     afterNextRender(() => {
       this.mapa = L.map(this.contenedor().nativeElement, {
         zoomControl: false,

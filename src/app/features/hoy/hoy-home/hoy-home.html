@@ -84,6 +84,12 @@
     </div>
     }
 
+    @if (errorVisita()) {
+    <div class="state-message error" role="alert">
+        <p>{{ errorVisita() }}</p>
+    </div>
+    }
+
     <div class="parada-list">
         @for (c of paradasPendientes(); track c.id; let i = $index) {
         <div class="parada-card">
@@ -97,7 +103,14 @@
                 }
             </div>
 
-            <a [routerLink]="['/clientes', c.id, 'entrega']" class="btn-entregar">Entregar</a>
+            <div class="parada-actions">
+                <a [routerLink]="['/clientes', c.id, 'entrega']" class="btn-entregar">Entregar</a>
+                <button type="button" class="btn-visitar" [disabled]="guardandoVisitaId() !== null"
+                    [attr.aria-label]="'Marcar visitado a ' + c.nombre + ' ' + c.apellido"
+                    [attr.aria-busy]="guardandoVisitaId() === c.id" (click)="marcarVisitado(c)">
+                    {{ guardandoVisitaId() === c.id ? 'Guardando…' : 'Marcar visitado' }}
+                </button>
+            </div>
         </div>
         }
     </div>

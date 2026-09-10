@@ -27,9 +27,30 @@
         <div>
             <span class="client-name">{{ c.nombre }} {{ c.apellido }}</span>
             <span class="client-balance">
-                Saldo actual: <strong>${{ saldoAnterior() }}</strong>
+                Saldo registrado: <strong>${{ saldoRegistrado() | number:'1.0-2' }}</strong>
             </span>
         </div>
+    </div>
+    <div class="ajuste-saldo">
+        @if (!editandoSaldo()) {
+        <button type="button" class="btn-add-observacion" (click)="iniciarAjusteSaldo()"
+            [disabled]="guardando() || verificandoStock() || mostrandoQR()">
+            <i class="bi bi-pencil"></i> Cargar deuda anterior
+        </button>
+        } @else {
+        <fieldset [disabled]="guardando() || verificandoStock() || mostrandoQR()">
+            <legend>Deuda anterior</legend>
+            <p id="ayudaSaldo">Ingresá la deuda total previa a esta entrega. Este valor reemplaza el saldo registrado
+                y se guarda al confirmar la entrega.</p>
+            <label for="nuevoSaldoAnterior">Nuevo saldo anterior ($)</label>
+            <input id="nuevoSaldoAnterior" type="number" min="0" max="99999999.99" step="0.01"
+                aria-describedby="ayudaSaldo" [ngModel]="nuevoSaldoAnterior()"
+                (ngModelChange)="nuevoSaldoAnterior.set($event)" />
+            <label for="motivoAjuste">Motivo</label>
+            <input id="motivoAjuste" type="text" maxlength="255" [(ngModel)]="motivoAjuste" />
+            <button type="button" class="btn-add-observacion" (click)="cancelarAjusteSaldo()">Cancelar ajuste</button>
+        </fieldset>
+        }
     </div>
     @if (detallePedido) {
     <div class="pedido-banner">

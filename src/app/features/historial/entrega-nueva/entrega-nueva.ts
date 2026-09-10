@@ -52,6 +52,9 @@ export default class EntregaNueva implements OnInit {
   opcionPago = signal<'todo' | 'nada' | 'otro'>('todo');
   montoPersonalizado = signal<number>(0);
   mostrarObservacion = signal(false);
+  editandoSaldo = signal(false);
+  nuevoSaldoAnterior = signal<number | null>(null);
+  motivoAjuste = 'Deuda anterior al uso del sistema';
 
   cargando = signal(true);
   guardando = signal(false);
@@ -91,7 +94,40 @@ export default class EntregaNueva implements OnInit {
     this.montoPersonalizado.set(val ?? 0);
   }
 
-  saldoAnterior = computed(() => Number(this.cliente()?.saldoActual ?? 0));
+  saldoRegistrado = computed(() => Number(this.cliente()?.saldoActual ?? 0));
+  saldoAnterior = computed(() => this.editandoSaldo()
+    ? (this.nuevoSaldoAnterior() ?? this.saldoRegistrado())
+    : this.saldoRegistrado());
+
+  iniciarAjusteSaldo() {
+    this.nuevoSaldoAnterior.set(Math.max(0, this.saldoRegistrado()));
+    this.motivoAjuste = 'Deuda anterior al uso del sistema';
+    this.editandoSaldo.set(true);
+  }
+
+  cancelarAjusteSaldo() {
+    this.editandoSaldo.set(false);
+    this.nuevoSaldoAnterior.set(null);
+    this.error.set(null);
+  }
+
+  private validarAjusteSaldo(): boolean {
+    if (!this.editandoSaldo()) return true;
+    const saldo = this.nuevoSaldoAnterior();
+    if (saldo === null || !Number.isFinite(saldo) || saldo < 0 || saldo > 99_999_999.99 || Math.round(saldo * 100) / 100 !== saldo) {
+      this.error.set('Ingresá una deuda anterior entre $0 y $99.999.999,99, con hasta dos decimales.');
+      return false;
+    }
+    if (saldo === this.saldoRegistrado()) {
+      this.error.set('El nuevo saldo es igual al registrado. Cambiá el valor o cancelá el ajuste.');
+      return false;
+    }
+    if (!this.motivoAjuste.trim() || this.motivoAjuste.trim().length > 255) {
+      this.error.set('Indicá el motivo del ajuste (hasta 255 caracteres).');
+      return false;
+    }
+    return true;
+  }
 
   saldoFinal = computed(
     () => this.saldoAnterior() + this.importeTotal() - this.montoPagado()
@@ -144,6 +180,7 @@ export default class EntregaNueva implements OnInit {
   }
 
   generarQR() {
+    if (!this.validarAjusteSaldo()) return;
     if (!this.hayMovimientos()) return;
     this.verificarStock(() => this.crearQR());
   }
@@ -240,6 +277,7 @@ export default class EntregaNueva implements OnInit {
   }
 
   confirmar() {
+    if (!this.validarAjusteSaldo()) return;
     this.verificarStock(() => this.registrarEntrega());
   }
 
@@ -301,6 +339,7 @@ export default class EntregaNueva implements OnInit {
   }
 
   private registrarEntrega() {
+    if (!this.validarAjusteSaldo()) return;
     const cliente = this.cliente();
     if (!cliente) return;
 
@@ -328,6 +367,13 @@ export default class EntregaNueva implements OnInit {
         metodoPago: this.metodoPago(),
         pedidoId: this.pedidoId ?? undefined,
         detalles,
+        ...(this.editandoSaldo() ? {
+          ajusteSaldo: {
+            saldoEsperado: this.saldoRegistrado(),
+            saldoNuevo: this.nuevoSaldoAnterior()!,
+            motivo: this.motivoAjuste.trim(),
+          },
+        } : {}),
       })
       .subscribe({
         next: () => {
@@ -354,6 +400,9 @@ export default class EntregaNueva implements OnInit {
     return (
       `Confirmar entrega a ${nombre} ${apellido}\n\n` +
       `${detalleTexto}\n\n` +
+      (this.editandoSaldo()
+        ? `Se cambiará el saldo anterior de $${this.saldoRegistrado()} a $${this.saldoAnterior()}.\nMotivo: ${this.motivoAjuste.trim()}\n\n`
+        : `Saldo anterior: $${this.saldoAnterior()}\n`) +
       `Total: $${this.importeTotal()}\n` +
       `Pagó: $${this.montoPagado()} (${this.metodoPago() === 'efectivo' ? 'Efectivo' : this.metodoPago() === 'transferencia' ? 'Transferencia' : 'QR'})\n` +
       `Saldo final: $${this.saldoFinal()}\n\n` +

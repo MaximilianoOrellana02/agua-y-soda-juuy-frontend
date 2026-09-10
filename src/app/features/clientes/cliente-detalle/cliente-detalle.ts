@@ -168,6 +168,10 @@ export default class ClienteDetalle implements OnInit {
             monto = Number(h.montoPagado);
           }
 
+          if (h.ajusteSaldo) {
+            subtitulo += ` · Saldo anterior: $${h.ajusteSaldo.saldoEsperado} → $${h.ajusteSaldo.saldoNuevo} (${h.ajusteSaldo.motivo})`;
+          }
+
           return {
             id: h.id,
             fechaTexto,

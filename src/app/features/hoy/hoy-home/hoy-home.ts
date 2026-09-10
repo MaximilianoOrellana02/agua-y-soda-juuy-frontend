@@ -4,7 +4,7 @@ import { BarrioService } from '../../../core/services/barrio.service';
 import { ResumenHoy } from '../../../core/models/historial.model';
 import { Cliente } from '../../../core/models/cliente.model';
 import { HistorialService } from '../../../core/services/historial.service';
-import { forkJoin } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { diaDeHoy, DiaSemana, Barrio } from '../../../core/models/barrio.model';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -23,6 +23,8 @@ export default class HoyHome implements OnInit {
 
   cargando = signal(true);
   error = signal<string | null>(null);
+  errorVisita = signal<string | null>(null);
+  guardandoVisitaId = signal<string | null>(null);
   resumen = signal<ResumenHoy | null>(null);
   paradasHoy = signal<Cliente[]>([]);
   paradasPendientes = signal<Cliente[]>([]);
@@ -72,6 +74,33 @@ export default class HoyHome implements OnInit {
     this.actualizarListado();
   }
 
+  marcarVisitado(cliente: Cliente) {
+    if (this.guardandoVisitaId() !== null) return;
+
+    const mensaje =
+      `¿Marcar a ${cliente.nombre} ${cliente.apellido} como visitado hoy?\n\n` +
+      'Se quitará de las paradas pendientes. No se registrará ninguna entrega ni cobro.';
+    if (!confirm(mensaje)) return;
+
+    this.errorVisita.set(null);
+    this.guardandoVisitaId.set(cliente.id);
+    this.clienteService.marcarVisita(cliente.id, true)
+      .pipe(finalize(() => this.guardandoVisitaId.set(null)))
+      .subscribe({
+        next: (actualizado) => {
+          this.clientesCargados = this.clientesCargados.map((c) =>
+            c.id === cliente.id ? { ...c, ultimaVisitaFecha: actualizado.ultimaVisitaFecha } : c
+          );
+          this.actualizarListado();
+        },
+        error: () => {
+          this.errorVisita.set(
+            `No se pudo marcar a ${cliente.nombre} ${cliente.apellido} como visitado. Intentá nuevamente.`
+          );
+        },
+      });
+  }
+
   private actualizarListado() {
     const hoy = diaDeHoy();
     const incluirRest = this.incluirRestaurantes();
@@ -105,7 +134,12 @@ export default class HoyHome implements OnInit {
   }
 
   private fechaHoyISO(): string {
-    return new Date().toISOString().split('T')[0];
+    const partes = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(new Date());
+    const valor = (tipo: Intl.DateTimeFormatPartTypes) => partes.find((p) => p.type === tipo)!.value;
+    return `${valor('year')}-${valor('month')}-${valor('day')}`;
   }
 
   visitadasHoy(): number {

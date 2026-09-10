@@ -6,6 +6,8 @@ import { CategoriaCliente, TipoCliente } from '../../../core/models/cliente.mode
 import { BarrioService } from '../../../core/services/barrio.service';
 import { Barrio } from '../../../core/models/barrio.model';
 import MapaCliente from '../../../shared/mapa-cliente/mapa-cliente';
+import { Geolocation } from '@capacitor/geolocation';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-cliente-nuevo',
@@ -23,6 +25,8 @@ export default class ClienteNuevo implements OnInit {
   guardando = signal(false);
   error = signal<string | null>(null);
   mapaAbierto = signal(true);
+  obteniendoUbicacion = signal(false);
+  errorUbicacion = signal<string | null>(null);
 
   toggleMapa() {
     this.mapaAbierto.update((v) => !v);
@@ -31,6 +35,65 @@ export default class ClienteNuevo implements OnInit {
   onPosicionCambiada(pos: { latitud: number; longitud: number }) {
     this.form.latitud = pos.latitud;
     this.form.longitud = pos.longitud;
+    this.errorUbicacion.set(null);
+  }
+
+  async usarMiUbicacion() {
+    if (this.obteniendoUbicacion()) return;
+
+    this.obteniendoUbicacion.set(true);
+    this.errorUbicacion.set(null);
+
+    try {
+      let latitud: number;
+      let longitud: number;
+
+      if (Capacitor.isNativePlatform()) {
+        const posicion = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 15000,
+        });
+        latitud = posicion.coords.latitude;
+        longitud = posicion.coords.longitude;
+      } else {
+        const posicion = await this.obtenerUbicacionDelNavegador();
+        latitud = posicion.coords.latitude;
+        longitud = posicion.coords.longitude;
+      }
+
+      this.form.latitud = latitud;
+      this.form.longitud = longitud;
+      this.mapaAbierto.set(true);
+    } catch (error) {
+      this.errorUbicacion.set(this.mensajeErrorUbicacion(error));
+    } finally {
+      this.obteniendoUbicacion.set(false);
+    }
+  }
+
+  private obtenerUbicacionDelNavegador(): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation || !window.isSecureContext) {
+        reject(new Error('ubicacion-no-disponible'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 15000,
+      });
+    });
+  }
+
+  private mensajeErrorUbicacion(error: unknown): string {
+    const codigo = typeof error === 'object' && error !== null && 'code' in error
+      ? String(error.code)
+      : '';
+    const mensaje = error instanceof Error ? error.message.toLowerCase() : '';
+    if (codigo === '1' || mensaje.includes('denied') || mensaje.includes('permiso')) {
+      return 'No se pudo acceder a tu ubicación. Habilitá el permiso de ubicación e intentá nuevamente.';
+    }
+    return 'No pudimos obtener tu ubicación. Verificá que el GPS esté activo e intentá nuevamente.';
   }
 
   form = {

@@ -281,3 +281,44 @@
     padding: 0.65rem 1rem;
     border-radius: 12px;
 }
+
+.parada-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.btn-visitar {
+    background: var(--color-surface);
+    color: var(--color-primary-dark);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    min-height: 44px;
+}
+
+.btn-visitar:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+@media (max-width: 420px) {
+    .parada-card {
+        flex-wrap: wrap;
+    }
+
+    .parada-actions {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .parada-actions > * {
+        flex: 1;
+    }
+}
