@@ -75,7 +75,17 @@ export interface ResumenHistorial {
 
 export interface ResumenHoy {
     cobrado: number;
+    cobradoPorMetodo: {
+        efectivo: number;
+        transferencia: number;
+        mercadopago: number;
+    };
     entregasCount: number;
     entregados: number;
     devueltos: number;
+    productos: {
+        nombre: string;
+        cantidad: number;
+        devueltos: number;
+    }[];
 }

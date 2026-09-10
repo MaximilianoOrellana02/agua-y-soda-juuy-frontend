@@ -377,7 +377,7 @@ export default class EntregaNueva implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.router.navigate(['/clientes', cliente.id]);
+          this.router.navigate(this.pedidoId ? ['/pedidos'] : ['/clientes', cliente.id]);
         },
         error: (err) => {
           this.guardando.set(false);

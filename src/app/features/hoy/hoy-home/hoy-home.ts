@@ -28,8 +28,11 @@ export default class HoyHome implements OnInit {
   resumen = signal<ResumenHoy | null>(null);
   paradasHoy = signal<Cliente[]>([]);
   paradasPendientes = signal<Cliente[]>([]);
+  paradasRealizadas = signal<Cliente[]>([]);
   mostrarMapa = signal(false);
   incluirRestaurantes = signal(false);
+  mostrarDetalleCobrado = signal(false);
+  mostrarDetalleEntregados = signal(false);
 
   private clientesCargados: Cliente[] = [];
   private barriosCargados: Barrio[] = [];
@@ -112,9 +115,11 @@ export default class HoyHome implements OnInit {
       return tocaHoy || (incluirRest && esRestaurante);
     });
 
+    const fechaHoy = this.fechaHoyISO();
     this.paradasHoy.set(deHoy);
-    this.paradasPendientes.set(
-      deHoy.filter((c) => c.ultimaVisitaFecha !== this.fechaHoyISO())
+    this.paradasPendientes.set(deHoy.filter((c) => c.ultimaVisitaFecha !== fechaHoy));
+    this.paradasRealizadas.set(
+      this.clientesCargados.filter((c) => c.ultimaVisitaFecha === fechaHoy)
     );
   }
 
@@ -150,6 +155,18 @@ export default class HoyHome implements OnInit {
     const total = this.paradasHoy().length;
     if (total === 0) return 0;
     return Math.round((this.visitadasHoy() / total) * 100);
+  }
+
+  toggleDetalleCobrado() {
+    this.mostrarDetalleCobrado.update((abierto) => !abierto);
+  }
+
+  toggleDetalleEntregados() {
+    this.mostrarDetalleEntregados.update((abierto) => !abierto);
+  }
+
+  productosEntregados() {
+    return (this.resumen()?.productos ?? []).filter((producto) => producto.cantidad > 0);
   }
 
   abrirMapa() {

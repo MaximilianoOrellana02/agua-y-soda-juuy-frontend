@@ -52,19 +52,57 @@
 
     @if (resumen(); as r) {
     <div class="stats-grid">
-        <div class="stat-box">
-            <span class="stat-label">Cobrado</span>
+        <button type="button" class="stat-box stat-box-button" [class.active]="mostrarDetalleCobrado()"
+            [attr.aria-expanded]="mostrarDetalleCobrado()" aria-controls="detalle-cobrado"
+            (click)="toggleDetalleCobrado()">
+            <span class="stat-label">Cobrado <i class="bi"
+                    [class.bi-chevron-down]="!mostrarDetalleCobrado()"
+                    [class.bi-chevron-up]="mostrarDetalleCobrado()"></i></span>
             <span class="stat-value">${{ r.cobrado | number:'1.0-0' }}</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">Entregados</span>
+        </button>
+        <button type="button" class="stat-box stat-box-button" [class.active]="mostrarDetalleEntregados()"
+            [attr.aria-expanded]="mostrarDetalleEntregados()" aria-controls="detalle-entregados"
+            (click)="toggleDetalleEntregados()">
+            <span class="stat-label">Entregados <i class="bi"
+                    [class.bi-chevron-down]="!mostrarDetalleEntregados()"
+                    [class.bi-chevron-up]="mostrarDetalleEntregados()"></i></span>
             <span class="stat-value">{{ r.entregados }}</span>
-        </div>
+        </button>
         <div class="stat-box">
             <span class="stat-label">Devueltos</span>
             <span class="stat-value">{{ r.devueltos }}</span>
         </div>
     </div>
+    @if (mostrarDetalleCobrado()) {
+    <div id="detalle-cobrado" class="cobrado-detalle">
+        <div class="cobrado-item">
+            <span><i class="bi bi-cash"></i> Efectivo</span>
+            <strong>${{ r.cobradoPorMetodo.efectivo | number:'1.0-0' }}</strong>
+        </div>
+        <div class="cobrado-item">
+            <span><i class="bi bi-bank"></i> Transferencia</span>
+            <strong>${{ r.cobradoPorMetodo.transferencia | number:'1.0-0' }}</strong>
+        </div>
+        @if (r.cobradoPorMetodo.mercadopago > 0) {
+        <div class="cobrado-item">
+            <span><i class="bi bi-qr-code"></i> Mercado Pago</span>
+            <strong>${{ r.cobradoPorMetodo.mercadopago | number:'1.0-0' }}</strong>
+        </div>
+        }
+    </div>
+    }
+    @if (mostrarDetalleEntregados()) {
+    <div id="detalle-entregados" class="cobrado-detalle">
+        @for (producto of productosEntregados(); track producto.nombre) {
+        <div class="cobrado-item">
+            <span><i class="bi bi-droplet"></i> {{ producto.nombre }}</span>
+            <strong>{{ producto.cantidad }}</strong>
+        </div>
+        } @empty {
+        <p class="detalle-vacio">No se entregaron productos hoy.</p>
+        }
+    </div>
+    }
     }
 
     <div class="paradas-header">
@@ -114,5 +152,33 @@
         </div>
         }
     </div>
+
+    <div class="paradas-header paradas-realizadas-header">
+        <h2>Paradas realizadas</h2>
+        <span class="paradas-count">{{ paradasRealizadas().length }} realizadas</span>
+    </div>
+
+    @if (paradasRealizadas().length === 0) {
+    <div class="state-message empty realizadas-empty">
+        <i class="bi bi-clock"></i>
+        <p>Todavía no hay paradas realizadas hoy</p>
+    </div>
+    } @else {
+    <div class="parada-list">
+        @for (c of paradasRealizadas(); track c.id) {
+        <div class="parada-card parada-realizada">
+            <span class="parada-numero realizada-check" aria-hidden="true">
+                <i class="bi bi-check-circle-fill"></i>
+            </span>
+
+            <div class="parada-info">
+                <a [routerLink]="['/clientes', c.id]" class="parada-nombre">{{ c.nombre }} {{ c.apellido }}</a>
+                <span class="parada-direccion">{{ c.direccion || 'Sin dirección' }}</span>
+                <span class="parada-estado">Visitado hoy</span>
+            </div>
+        </div>
+        }
+    </div>
+    }
     }
 </div>
