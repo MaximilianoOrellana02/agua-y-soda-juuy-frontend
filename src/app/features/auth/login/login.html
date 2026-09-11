@@ -31,12 +31,6 @@
                 </div>
             </div>
 
-            @if (error()) {
-            <div class="form-error">
-                <i class="bi bi-exclamation-circle"></i> {{ error() }}
-            </div>
-            }
-
             <button type="submit" class="btn-submit" [disabled]="cargando()">
                 {{ cargando() ? 'Ingresando...' : 'Ingresar' }}
             </button>

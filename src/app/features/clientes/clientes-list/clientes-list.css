@@ -27,6 +27,36 @@
   color: var(--color-primary-dark);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.btn-archive {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1.5px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.btn-archive.active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+.btn-archive:active {
+  transform: scale(0.94);
+}
+
 .btn-add {
   display: flex;
   align-items: center;
@@ -176,6 +206,18 @@
   box-shadow: 0 4px 16px rgba(22, 35, 43, 0.06);
 }
 
+.client-card.archived {
+  cursor: default;
+}
+
+.client-card.archived:hover {
+  box-shadow: none;
+}
+
+.client-card.archived:active {
+  transform: none;
+}
+
 /* La "ficha" de estado: barra de color a la izquierda, como un separador de carpeta contable */
 .status-bar {
   position: absolute;
@@ -253,6 +295,20 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+}
+
+.archive-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .amount {

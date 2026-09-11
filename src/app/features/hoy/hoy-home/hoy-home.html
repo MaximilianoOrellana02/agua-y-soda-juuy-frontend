@@ -122,12 +122,6 @@
     </div>
     }
 
-    @if (errorVisita()) {
-    <div class="state-message error" role="alert">
-        <p>{{ errorVisita() }}</p>
-    </div>
-    }
-
     <div class="parada-list">
         @for (c of paradasPendientes(); track c.id; let i = $index) {
         <div class="parada-card">

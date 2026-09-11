@@ -6,6 +6,7 @@ import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { PrecioParticularPipe, PrecioConfianzaPipe } from '../../../shared/precio.pipe';
 import { PrecioHistorialModal } from '../../../shared/precio-historial-modal/precio-historial-modal';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-producto-detalle',
@@ -17,6 +18,7 @@ export default class ProductoDetalle implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productoService = inject(ProductoService);
+  private notificationService = inject(NotificationService);
 
   producto = signal<Producto | null>(null);
   cargando = signal(true);
@@ -139,10 +141,13 @@ export default class ProductoDetalle implements OnInit {
         this.cargarProducto(actual.id);
         this.editando.set(false);
         this.guardando.set(false);
+        this.notificationService.mostrar('Producto actualizado correctamente.', 'success');
       },
       error: (err) => {
-        this.error.set(err.error?.error ?? 'No se pudieron guardar los cambios');
+        const mensaje = err.error?.error ?? 'No se pudieron guardar los cambios';
+        this.error.set(mensaje);
         this.guardando.set(false);
+        this.notificationService.mostrar(mensaje);
       },
     });
   }
@@ -150,10 +155,22 @@ export default class ProductoDetalle implements OnInit {
   desactivar() {
     const actual = this.producto();
     if (!actual) return;
-    if (!confirm(`¿Desactivar "${actual.nombre}"? Ya no va a aparecer para nuevas entregas.`)) return;
 
+    this.notificationService.confirmar(
+      'Desactivar producto',
+      `¿Querés desactivar "${actual.nombre}"?`,
+      () => this.confirmarDesactivacion(actual),
+      'Desactivar',
+      { advertencia: 'El producto dejará de aparecer en las nuevas entregas.' },
+    );
+  }
+
+  private confirmarDesactivacion(actual: Producto) {
     this.productoService.desactivar(actual.id).subscribe({
-      next: () => this.router.navigate(['/productos']),
+      next: () => {
+        this.notificationService.mostrar(`Producto ${actual.nombre} desactivado.`, 'success');
+        this.router.navigate(['/productos']);
+      },
       error: (err) => this.error.set(err.error?.error ?? 'No se pudo desactivar el producto'),
     });
   }
@@ -194,6 +211,11 @@ export default class ProductoDetalle implements OnInit {
           this.cargarProducto(actual.id);
           this.guardandoMovimiento.set(false);
           this.mostrarMovimiento.set(false);
+          const tipo = this.tipoMovimiento() === 'entrada' ? 'Entrada' : 'Salida';
+          this.notificationService.mostrar(
+            `${tipo} de ${this.cantidadMovimiento} unidades de ${actual.nombre} registrada.`,
+            'success',
+          );
         },
         error: (err) => {
           this.errorMovimiento.set(err.error?.error ?? 'No se pudo registrar el movimiento');

@@ -11,6 +11,7 @@ import { armarLinkWhatsapp } from '../../../shared/whatsapp.util';
 import PagoModal from '../../../shared/pago-modal/pago-modal';
 import { HistorialService } from '../../../core/services/historial.service';
 import { Historial } from '../../../core/models/historial.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 export interface MovimientoItem {
   id: string;
@@ -28,15 +29,18 @@ export interface MovimientoItem {
 })
 export default class ClienteDetalle implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private clienteService = inject(ClienteService);
   private barrioService = inject(BarrioService);
   private historialService = inject(HistorialService);
+  private notificationService = inject(NotificationService);
 
   cliente = signal<Cliente | null>(null);
   cargando = signal(true);
   error = signal<string | null>(null);
   editando = signal(false);
   guardando = signal(false);
+  desactivando = signal(false);
   barrios = signal<Barrio[]>([]);
   movimientos = signal<MovimientoItem[]>([]);
   movimientosCargando = signal(false);
@@ -212,7 +216,6 @@ export default class ClienteDetalle implements OnInit {
     const actual = this.cliente();
     if (actual) this.sincronizarFormulario(actual); // descarta cambios sin guardar
     this.editando.set(false);
-    this.error.set(null);
   }
 
   guardar() {
@@ -220,12 +223,11 @@ export default class ClienteDetalle implements OnInit {
     if (!actual) return;
 
     if (!this.form.nombre || !this.form.apellido) {
-      this.error.set('Nombre y apellido son obligatorios');
+      this.notificationService.mostrar('Nombre y apellido son obligatorios');
       return;
     }
 
     this.guardando.set(true);
-    this.error.set(null);
 
     const payload = {
       ...this.form,
@@ -240,9 +242,10 @@ export default class ClienteDetalle implements OnInit {
         this.sincronizarFormulario(data);
         this.editando.set(false);
         this.guardando.set(false);
+        this.notificationService.mostrar('Datos del cliente actualizados correctamente.', 'success');
       },
       error: (err) => {
-        this.error.set(err.error?.error ?? 'No se pudieron guardar los cambios');
+        this.notificationService.mostrar(err.error?.error ?? 'No se pudieron guardar los cambios');
         this.guardando.set(false);
       },
     });
@@ -271,8 +274,44 @@ export default class ClienteDetalle implements OnInit {
         this.cliente.set(data);
         this.ajustandoUbicacion.set(false);
         this.nuevaUbicacion.set(null);
+        this.notificationService.mostrar('Ubicación del cliente guardada correctamente.', 'success');
       },
-      error: (err) => this.error.set(err.error?.error ?? 'No se pudo guardar la ubicación'),
+      error: (err) => this.notificationService.mostrar(err.error?.error ?? 'No se pudo guardar la ubicación'),
+    });
+  }
+
+  desactivar() {
+    const actual = this.cliente();
+    if (!actual || this.desactivando()) return;
+
+    this.notificationService.confirmar(
+      'Desactivar cliente',
+      `¿Querés desactivar a ${actual.nombre} ${actual.apellido}?`,
+      () => this.confirmarDesactivacion(actual),
+      'Desactivar',
+      {
+        advertencia: 'El cliente dejará de aparecer en listados y rutas. Los envases pendientes seguirán registrados; el saldo y los pedidos sí deben resolverse antes.',
+      },
+    );
+  }
+
+  private confirmarDesactivacion(cliente: Cliente) {
+    this.desactivando.set(true);
+
+    this.clienteService.eliminar(cliente.id).subscribe({
+      next: () => {
+        this.notificationService.mostrar(
+          `Cliente ${cliente.nombre} ${cliente.apellido} desactivado correctamente.`,
+          'success',
+        );
+        this.router.navigate(['/clientes']);
+      },
+      error: (err) => {
+        this.desactivando.set(false);
+        this.notificationService.mostrar(
+          err.error?.error ?? 'No se pudo desactivar el cliente.',
+        );
+      },
     });
   }
 

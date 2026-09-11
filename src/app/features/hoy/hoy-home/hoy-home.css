@@ -320,7 +320,7 @@
 
 .stat-box-button.active {
     border-color: var(--color-primary);
-    background: #eaf6f4;
+    background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
 }
 
 .stat-box-button .bi {

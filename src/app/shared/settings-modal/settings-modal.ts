@@ -3,6 +3,7 @@ import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { NotificationService } from '../../core/services/notification.service';
 
 type Vista = 'menu' | 'password';
 
@@ -15,6 +16,7 @@ type Vista = 'menu' | 'password';
 export default class SettingsModal {
   themeService = inject(ThemeService);
   authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
 
   cerrar = output<void>();
   vista = signal<Vista>('menu');
@@ -32,6 +34,15 @@ export default class SettingsModal {
   }
 
   logout() {
+    this.notificationService.confirmar(
+      'Cerrar sesión',
+      '¿Querés cerrar tu sesión actual?',
+      () => this.confirmarLogout(),
+      'Cerrar sesión',
+    );
+  }
+
+  private confirmarLogout() {
     this.authService.logout();
     this.cerrar.emit();
   }

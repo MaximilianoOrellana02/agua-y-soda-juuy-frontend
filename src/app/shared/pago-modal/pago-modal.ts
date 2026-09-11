@@ -2,6 +2,7 @@ import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HistorialService } from '../../core/services/historial.service';
 import { MetodoPago } from '../../core/models/historial.model';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-pago-modal',
@@ -11,6 +12,7 @@ import { MetodoPago } from '../../core/models/historial.model';
 })
 export default class PagoModal {
   private historialService = inject(HistorialService);
+  private notificationService = inject(NotificationService);
 
   clienteId = input.required<string>();
   nombreCliente = input.required<string>();
@@ -31,16 +33,35 @@ export default class PagoModal {
       return;
     }
 
-    const resumen =
-      `Registrar pago de ${this.nombreCliente()}\n\n` +
-      `Monto: $${this.monto}\n` +
-      `Método: ${this.metodoPago() === 'efectivo' ? 'Efectivo' : 'Transferencia'}\n` +
-      `Saldo antes: $${this.saldoActual()}\n` +
-      `Saldo después: $${this.saldoActual() - this.monto}\n\n` +
-      `¿Confirmás el registro?`;
+    const saldoFinal = this.saldoActual() - this.monto;
+    const formatoMonto = (valor: number) => `$${valor.toLocaleString('es-AR')}`;
 
-    if (!confirm(resumen)) return;
+    this.notificationService.confirmar(
+      `Registrar pago de ${this.nombreCliente()}`,
+      '',
+      () => this.registrarPago(),
+      'Registrar pago',
+      {
+        etiquetaSuperior: 'Nuevo pago',
+        advertencia: saldoFinal < 0
+          ? `El pago supera la deuda. El cliente quedará con ${formatoMonto(Math.abs(saldoFinal))} a favor.`
+          : undefined,
+        detalles: [
+          { etiqueta: 'Cliente', valor: this.nombreCliente() },
+          { etiqueta: 'Monto', valor: formatoMonto(this.monto) },
+          {
+            etiqueta: 'Método',
+            valor: this.metodoPago() === 'efectivo' ? 'Efectivo' : 'Transferencia',
+            tono: 'info',
+          },
+          { etiqueta: 'Saldo anterior', valor: formatoMonto(this.saldoActual()) },
+          { etiqueta: 'Saldo final', valor: formatoMonto(saldoFinal) },
+        ],
+      },
+    );
+  }
 
+  private registrarPago() {
     this.guardando.set(true);
     this.error.set(null);
 
@@ -55,6 +76,10 @@ export default class PagoModal {
       .subscribe({
         next: () => {
           this.guardando.set(false);
+          this.notificationService.mostrar(
+            `Pago de $${this.monto.toLocaleString('es-AR')} registrado correctamente.`,
+            'success',
+          );
           this.pagoRegistrado.emit();
         },
         error: (err) => {

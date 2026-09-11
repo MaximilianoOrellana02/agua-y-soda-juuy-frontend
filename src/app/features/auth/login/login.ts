@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -11,12 +12,12 @@ import { FormsModule } from '@angular/forms';
 })
 export default class Login {
   private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
   private router = inject(Router);
 
   username: string = ''
   password: string = ''
 
-  error = signal<string | null>(null);
   cargando = signal(false)
   mostrarPassword = signal(false);
 
@@ -28,12 +29,11 @@ export default class Login {
 
   onSubmit(): void {
     if (!this.username || !this.password) {
-      this.error.set('Completá usuario y contraseña')
+      this.notificationService.mostrar('Completá usuario y contraseña')
       return;
     }
 
     this.cargando.set(true);
-    this.error.set(null);
 
     this.authService.login(this.username, this.password).subscribe({
       next: (response) => {
@@ -42,7 +42,7 @@ export default class Login {
       },
       error: (err) => {
         this.cargando.set(false);
-        this.error.set(err.error?.error ?? 'Error al iniciar sesión');
+        this.notificationService.mostrar(err.error?.error ?? 'Error al iniciar sesión');
       },
     })
   }

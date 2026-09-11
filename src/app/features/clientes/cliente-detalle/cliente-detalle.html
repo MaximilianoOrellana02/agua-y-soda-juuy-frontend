@@ -139,6 +139,17 @@
         </div>
         }
     </div>
+
+    <div class="danger-zone">
+        <div class="danger-zone-copy">
+            <strong>Desactivar cliente</strong>
+            <span>Dejará de aparecer en listados y rutas.</span>
+        </div>
+        <button type="button" class="btn-deactivate" (click)="desactivar()" [disabled]="desactivando()">
+            <i class="bi bi-person-x"></i>
+            {{ desactivando() ? 'Desactivando…' : 'Desactivar' }}
+        </button>
+    </div>
     }
 
     <!-- Modo edición -->
@@ -246,12 +257,6 @@
                 </div>
             }
         </div>
-
-        @if (error()) {
-        <div class="form-error">
-            <i class="bi bi-exclamation-circle"></i> {{ error() }}
-        </div>
-        }
 
         <div class="form-actions">
             <button type="button" class="btn-cancel" (click)="cancelarEdicion()">

@@ -9,6 +9,7 @@ import { HistorialService } from '../../../core/services/historial.service';
 import { Cliente } from '../../../core/models/cliente.model';
 import { Producto, precioVigente } from '../../../core/models/producto.model';
 import { MetodoPago } from '../../../core/models/historial.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 import * as QRCode from 'qrcode';
 import { MercadopagoService } from '../../../core/services/mercadopago.service';
@@ -36,6 +37,7 @@ export default class EntregaNueva implements OnInit {
   private productoService = inject(ProductoService);
   private historialService = inject(HistorialService);
   private mercadopagoService = inject(MercadopagoService)
+  private notificationService = inject(NotificationService);
 
 
   mpHabilitado = signal(false);
@@ -343,6 +345,15 @@ export default class EntregaNueva implements OnInit {
     const cliente = this.cliente();
     if (!cliente) return;
 
+    this.notificationService.confirmar(
+      `Confirmar entrega a ${cliente.nombre} ${cliente.apellido}`,
+      this.armarResumen(),
+      () => this.guardarEntrega(cliente),
+      'Registrar entrega',
+    );
+  }
+
+  private guardarEntrega(cliente: Cliente) {
     const detalles = this.lineas()
       .filter((l) => l.cantidadEntregada > 0 || l.cantidadEnvaseDevuelto > 0)
       .map((l) => ({
@@ -352,9 +363,6 @@ export default class EntregaNueva implements OnInit {
         precioUnitario: l.precioUnitario,
       }));
 
-
-    const resumen = this.armarResumen(cliente.nombre, cliente.apellido);
-    if (!confirm(resumen)) return;
 
     this.guardando.set(true);
     this.error.set(null);
@@ -377,6 +385,10 @@ export default class EntregaNueva implements OnInit {
       })
       .subscribe({
         next: () => {
+          this.notificationService.mostrar(
+            `Entrega a ${cliente.nombre} ${cliente.apellido} registrada correctamente.`,
+            'success',
+          );
           this.router.navigate(this.pedidoId ? ['/pedidos'] : ['/clientes', cliente.id]);
         },
         error: (err) => {
@@ -386,7 +398,7 @@ export default class EntregaNueva implements OnInit {
       });
   }
 
-  private armarResumen(nombre: string, apellido: string): string {
+  private armarResumen(): string {
     const lineasConMovimiento = this.lineas().filter(
       (l) => l.cantidadEntregada > 0 || l.cantidadEnvaseDevuelto > 0
     );
@@ -398,15 +410,13 @@ export default class EntregaNueva implements OnInit {
       : '(Entrega informal, sin productos cargados)';
 
     return (
-      `Confirmar entrega a ${nombre} ${apellido}\n\n` +
       `${detalleTexto}\n\n` +
       (this.editandoSaldo()
         ? `Se cambiará el saldo anterior de $${this.saldoRegistrado()} a $${this.saldoAnterior()}.\nMotivo: ${this.motivoAjuste.trim()}\n\n`
         : `Saldo anterior: $${this.saldoAnterior()}\n`) +
       `Total: $${this.importeTotal()}\n` +
       `Pagó: $${this.montoPagado()} (${this.metodoPago() === 'efectivo' ? 'Efectivo' : this.metodoPago() === 'transferencia' ? 'Transferencia' : 'QR'})\n` +
-      `Saldo final: $${this.saldoFinal()}\n\n` +
-      `¿Confirmás el registro?`
+      `Saldo final: $${this.saldoFinal()}`
     );
   }
 

@@ -5,6 +5,7 @@ import { PedidoService } from '../../../core/services/pedido.service';
 import { ClienteService } from '../../../core/services/cliente.service';
 import { Pedido } from '../../../core/models/pedido.model';
 import { Cliente } from '../../../core/models/cliente.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-pedidos-list',
@@ -16,6 +17,7 @@ export default class PedidosList implements OnInit {
   private pedidoService = inject(PedidoService);
   private clienteService = inject(ClienteService);
   private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
   pedidos = signal<Pedido[]>([]);
   clientes = signal<Cliente[]>([]);
@@ -126,6 +128,7 @@ export default class PedidosList implements OnInit {
         this.resetForm();
         this.mostrarForm.set(false);
         this.guardando.set(false);
+        this.notificationService.mostrar(`Pedido de ${this.nombreCliente(pedidoCompleto.cliente)} creado.`, 'success');
       },
       error: () => {
         this.error.set('No se pudo crear el pedido');
@@ -144,9 +147,26 @@ export default class PedidosList implements OnInit {
   }
 
   eliminar(pedido: Pedido) {
-    if (!confirm('¿Cancelar este pedido?')) return;
+    const cliente = this.nombreCliente(pedido.cliente);
+    const detalle = pedido.detalle?.trim();
+
+    this.notificationService.confirmar(
+      'Cancelar pedido',
+      detalle
+        ? `Pedido de ${cliente}:\n${detalle}`
+        : `¿Querés cancelar el pedido de ${cliente}?`,
+      () => this.confirmarCancelacion(pedido),
+      'Cancelar pedido',
+      { advertencia: 'El pedido se quitará de la lista de pendientes.' },
+    );
+  }
+
+  private confirmarCancelacion(pedido: Pedido) {
     this.pedidoService.eliminar(pedido.id).subscribe({
-      next: () => this.pedidos.update((lista) => lista.filter((p) => p.id !== pedido.id)),
+      next: () => {
+        this.pedidos.update((lista) => lista.filter((p) => p.id !== pedido.id));
+        this.notificationService.mostrar('Pedido cancelado correctamente.', 'success');
+      },
       error: () => this.error.set('No se pudo eliminar el pedido'),
     });
   }

@@ -1,9 +1,19 @@
 <div class="page">
     <header class="page-header">
-        <h1>Clientes</h1>
-        <a routerLink="/clientes/nuevo" class="btn-add" aria-label="Nuevo cliente">
-            <i class="bi bi-plus-lg"></i>
-        </a>
+        <h1>{{ viendoArchivados() ? 'Archivados' : 'Clientes' }}</h1>
+        <div class="header-actions">
+            <button type="button" class="btn-archive" [class.active]="viendoArchivados()"
+                (click)="toggleArchivados()"
+                [attr.aria-label]="viendoArchivados() ? 'Ver clientes activos' : 'Ver clientes archivados'"
+                [attr.title]="viendoArchivados() ? 'Ver clientes activos' : 'Ver clientes archivados'">
+                <i class="bi" [class.bi-archive]="!viendoArchivados()" [class.bi-people]="viendoArchivados()"></i>
+            </button>
+            @if (!viendoArchivados()) {
+            <a routerLink="/clientes/nuevo" class="btn-add" aria-label="Nuevo cliente">
+                <i class="bi bi-plus-lg"></i>
+            </a>
+            }
+        </div>
     </header>
 
     <div class="search-bar">
@@ -11,7 +21,7 @@
         <input type="text" placeholder="Buscar cliente..." [value]="busqueda()"
             (input)="onBusqueda($any($event.target).value)" />
     </div>
-    @if (deudaVieja().length > 0) {
+    @if (!viendoArchivados() && deudaVieja().length > 0) {
     <button class="banner-deuda" [class.active]="filtroDeudaViejaActivo()" (click)="toggleFiltroDeudaVieja()">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <span>
@@ -23,6 +33,7 @@
     </button>
     }
 
+    @if (!viendoArchivados()) {
     <div class="day-filter">
         <button class="day-chip" [class.active]="diaSeleccionado() === ''"
             (click)="cambiarDia('')">Todos</button>
@@ -35,6 +46,7 @@
             <i class="bi bi-shop"></i> Restaurantes
         </button>
     </div>
+    }
 
 
 
@@ -56,14 +68,14 @@
     @if (!cargando() && clientesFiltrados.length === 0 && !error()) {
     <div class="state-message empty">
         <i class="bi bi-people"></i>
-        <p>No hay clientes para mostrar</p>
+        <p>{{ viendoArchivados() ? 'No hay clientes archivados' : 'No hay clientes para mostrar' }}</p>
     </div>
     }
 
     <ul class="client-list">
         @for (cliente of clientesMostrados; track cliente.id) {
         <li class="client-card" [class.is-debt]="cliente.saldoActual > 0" [class.is-credit]="cliente.saldoActual < 0"
-            (click)="irADetalle(cliente.id)">
+            [class.archived]="viendoArchivados()" (click)="!viendoArchivados() && irADetalle(cliente.id)">
             <div class="status-bar"></div>
 
             <div class="client-info">
@@ -75,11 +87,15 @@
             </div>
 
             <div class="client-side">
+                @if (viendoArchivados()) {
+                <span class="archive-badge"><i class="bi bi-archive"></i> Archivado</span>
+                } @else {
                 <div class="amount">
                     <span class="amount-value">{{ cliente.saldoActual | number:'1.0-0' }}</span>
                     <span class="amount-label">
                         {{ cliente.saldoActual > 0 ? 'debe' : cliente.saldoActual < 0 ? 'a favor' : 'al día' }} </span>
                 </div>
+                }
 
                 @if (cliente.telefono) {
                 <a [href]="'tel:' + cliente.telefono" class="btn-call" aria-label="Llamar"

@@ -104,9 +104,6 @@
                             [class.bi-arrow-repeat]="obteniendoUbicacion()"></i>
                         {{ obteniendoUbicacion() ? 'Buscando ubicación…' : 'Usar mi ubicación' }}
                     </button>
-                    @if (errorUbicacion()) {
-                    <p class="location-error" role="alert">{{ errorUbicacion() }}</p>
-                    }
                     <app-mapa-cliente 
                         [latitud]="form.latitud ?? -24.1858"
                         [longitud]="form.longitud ?? -65.2995"
@@ -119,12 +116,6 @@
                 </div>
             }
         </div>
-
-        @if (error()) {
-        <div class="form-error">
-            <i class="bi bi-exclamation-circle"></i> {{ error() }}
-        </div>
-        }
 
         <div class="form-actions">
             <a routerLink="/clientes" class="btn-cancel">Cancelar</a>

@@ -26,6 +26,12 @@ export class ClienteService {
       .pipe(map((clientes) => clientes.map((c) => this.normalizarCliente(c))));
   }
 
+  listarDesactivados(): Observable<Cliente[]> {
+    return this.http
+      .get<Cliente[]>(`${this.baseUrl}/desactivados`)
+      .pipe(map((clientes) => clientes.map((c) => this.normalizarCliente(c))));
+  }
+
   obtenerCliente(id: string): Observable<Cliente> {
     return this.http
       .get<Cliente>(`${this.baseUrl}/${id}`)

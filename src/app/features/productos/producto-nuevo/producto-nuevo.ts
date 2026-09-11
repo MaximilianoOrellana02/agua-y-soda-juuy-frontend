@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ProductoService } from '../../../core/services/producto.service';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-producto-nuevo',
@@ -12,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 export default class ProductoNuevo {
   private productoService = inject(ProductoService);
   private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
   guardando = signal(false);
   error = signal<string | null>(null);
@@ -39,11 +41,17 @@ export default class ProductoNuevo {
 
     this.productoService.crear(payload).subscribe({
       next: (producto) => {
+        this.notificationService.mostrar(
+          `Producto ${producto.nombre} creado correctamente.`,
+          'success',
+        );
         this.router.navigate(['/productos', producto.id]);
       },
       error: (err) => {
+        const mensaje = err.error?.error ?? 'No se pudo crear el producto';
         this.guardando.set(false);
-        this.error.set(err.error?.error ?? 'No se pudo crear el producto');
+        this.error.set(mensaje);
+        this.notificationService.mostrar(mensaje);
       },
     });
   }

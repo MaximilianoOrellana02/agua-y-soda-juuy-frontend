@@ -9,6 +9,7 @@ import { diaDeHoy, DiaSemana, Barrio } from '../../../core/models/barrio.model';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import RutaMapaModal from '../../../shared/ruta-mapa-modal/ruta-mapa-modal';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-hoy-home',
@@ -20,10 +21,10 @@ export default class HoyHome implements OnInit {
   private clienteService = inject(ClienteService);
   private barrioService = inject(BarrioService);
   private historialService = inject(HistorialService);
+  private notificationService = inject(NotificationService);
 
   cargando = signal(true);
   error = signal<string | null>(null);
-  errorVisita = signal<string | null>(null);
   guardandoVisitaId = signal<string | null>(null);
   resumen = signal<ResumenHoy | null>(null);
   paradasHoy = signal<Cliente[]>([]);
@@ -80,12 +81,15 @@ export default class HoyHome implements OnInit {
   marcarVisitado(cliente: Cliente) {
     if (this.guardandoVisitaId() !== null) return;
 
-    const mensaje =
-      `¿Marcar a ${cliente.nombre} ${cliente.apellido} como visitado hoy?\n\n` +
-      'Se quitará de las paradas pendientes. No se registrará ninguna entrega ni cobro.';
-    if (!confirm(mensaje)) return;
+    this.notificationService.confirmar(
+      `¿Marcar a ${cliente.nombre} ${cliente.apellido}?`,
+      'Se quitará de las paradas pendientes sin registrar entregas ni cobros.',
+      () => this.confirmarVisita(cliente),
+      'Sí, marcar',
+    );
+  }
 
-    this.errorVisita.set(null);
+  private confirmarVisita(cliente: Cliente) {
     this.guardandoVisitaId.set(cliente.id);
     this.clienteService.marcarVisita(cliente.id, true)
       .pipe(finalize(() => this.guardandoVisitaId.set(null)))
@@ -97,7 +101,7 @@ export default class HoyHome implements OnInit {
           this.actualizarListado();
         },
         error: () => {
-          this.errorVisita.set(
+          this.notificationService.mostrar(
             `No se pudo marcar a ${cliente.nombre} ${cliente.apellido} como visitado. Intentá nuevamente.`
           );
         },
@@ -187,16 +191,16 @@ export default class HoyHome implements OnInit {
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(texto).then(() => {
-        alert(
-          'No se pudo abrir el menú de compartir, pero copié la ruta al portapapeles. Pegala donde quieras.',
+        this.notificationService.mostrar(
+          'Ruta copiada al portapapeles. Pegala donde quieras.',
+          'success',
         );
       });
       return;
     }
 
-    alert(
-      'Tu navegador no permite compartir automáticamente en este modo. Probá copiando el texto manualmente:\n\n' +
-      texto,
+    this.notificationService.mostrar(
+      'Tu navegador no permite compartir ni copiar la ruta automáticamente.',
     );
   }
 

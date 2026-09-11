@@ -7,9 +7,11 @@ import { ClienteService } from '../../../core/services/cliente.service';
 import { ProductoService } from '../../../core/services/producto.service';
 import { HistorialService } from '../../../core/services/historial.service';
 import { MercadopagoService } from '../../../core/services/mercadopago.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 describe('Deuda anterior en la entrega', () => {
   let component: EntregaNueva;
+  let notificationService: NotificationService;
   const crearEntrega = vi.fn();
   const navigate = vi.fn();
 
@@ -26,6 +28,7 @@ describe('Deuda anterior en la entrega', () => {
         { provide: MercadopagoService, useValue: {} },
       ],
     });
+    notificationService = TestBed.inject(NotificationService);
     component = TestBed.runInInjectionContext(() => new EntregaNueva());
     component.cliente.set({
       id: 'cliente', nombre: 'Ana', apellido: 'Prueba', saldoActual: 500,
@@ -38,7 +41,6 @@ describe('Deuda anterior en la entrega', () => {
     }]);
     component.opcionPago.set('otro');
     component.montoPersonalizado.set(50);
-    vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
   });
 
   afterEach(() => vi.restoreAllMocks());
@@ -56,8 +58,8 @@ describe('Deuda anterior en la entrega', () => {
   it('no guarda nada si se cancela la confirmación de la entrega', () => {
     component.iniciarAjusteSaldo();
     component.nuevoSaldoAnterior.set(15000);
-    vi.mocked(globalThis.confirm).mockReturnValue(false);
     component.confirmar();
+    notificationService.cerrar();
     expect(crearEntrega).not.toHaveBeenCalled();
     expect(component.saldoRegistrado()).toBe(500);
   });
@@ -66,7 +68,12 @@ describe('Deuda anterior en la entrega', () => {
     component.iniciarAjusteSaldo();
     component.nuevoSaldoAnterior.set(15000);
     component.confirmar();
-    expect(globalThis.confirm).toHaveBeenCalledWith(expect.stringContaining('de $500 a $15000'));
+    expect(notificationService.notificacion()).toEqual(expect.objectContaining({
+      titulo: 'Confirmar entrega a Ana Prueba',
+      mensaje: expect.stringContaining('de $500 a $15000'),
+      etiquetaConfirmacion: 'Registrar entrega',
+    }));
+    notificationService.aceptarConfirmacion();
     expect(crearEntrega).toHaveBeenCalledWith(expect.objectContaining({
       montoPagado: 50,
       ajusteSaldo: { saldoEsperado: 500, saldoNuevo: 15000, motivo: 'Deuda anterior al uso del sistema' },
@@ -76,6 +83,7 @@ describe('Deuda anterior en la entrega', () => {
 
   it('mantiene la entrega habitual sin un ajuste implícito', () => {
     component.confirmar();
+    notificationService.aceptarConfirmacion();
     expect(crearEntrega.mock.calls[0][0]).not.toHaveProperty('ajusteSaldo');
   });
 
@@ -90,7 +98,7 @@ describe('Deuda anterior en la entrega', () => {
     component.motivoAjuste = ' ';
     component.confirmar();
     expect(crearEntrega).not.toHaveBeenCalled();
-    expect(globalThis.confirm).not.toHaveBeenCalled();
+    expect(notificationService.notificacion()).toBeNull();
   });
 
   it('conserva el formulario y avisa si el servidor detecta un saldo desactualizado', () => {
@@ -98,6 +106,7 @@ describe('Deuda anterior en la entrega', () => {
     component.iniciarAjusteSaldo();
     component.nuevoSaldoAnterior.set(15000);
     component.confirmar();
+    notificationService.aceptarConfirmacion();
     expect(component.error()).toBe('El saldo del cliente cambio');
     expect(component.guardando()).toBe(false);
     expect(component.nuevoSaldoAnterior()).toBe(15000);

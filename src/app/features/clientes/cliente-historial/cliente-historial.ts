@@ -3,6 +3,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HistorialService } from '../../../core/services/historial.service';
 import { cantidadPorCategoria, Historial } from '../../../core/models/historial.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 import * as XLSX from 'xlsx'
 
@@ -15,6 +16,7 @@ import * as XLSX from 'xlsx'
 export default class ClienteHistorial implements OnInit {
   private router = inject(ActivatedRoute);
   private historialService = inject(HistorialService);
+  private notificationService = inject(NotificationService);
 
   clienteId = '';
   entregas = signal<Historial[]>([]);
@@ -112,6 +114,8 @@ export default class ClienteHistorial implements OnInit {
     XLSX.utils.book_append_sheet(libro, hoja, 'Historial');
 
     const fechaArchivo = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(libro, `historial-cliente-${fechaArchivo}.xlsx`);
+    const nombreArchivo = `historial-cliente-${fechaArchivo}.xlsx`;
+    XLSX.writeFile(libro, nombreArchivo);
+    this.notificationService.mostrar(`Archivo ${nombreArchivo} generado correctamente.`, 'success');
   }
 }

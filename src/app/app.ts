@@ -5,6 +5,7 @@ import Toast from "./shared/toast/toast";
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { ThemeService } from './core/services/theme.service';
+import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class App implements OnInit {
   protected readonly title = signal('soderia-frontend');
   constructor(private router: Router, private location: Location) { }
   private themeService = inject(ThemeService)
+  private notificationService = inject(NotificationService);
 
   ngOnInit() {
     if (!Capacitor.isNativePlatform()) return;
@@ -24,9 +26,12 @@ export class App implements OnInit {
       const rutaActual = this.router.url;
 
       if (rutaActual == '/cliente' || rutaActual === '/login') {
-        if (confirm('¿Salir de app?')) {
-          CapacitorApp.exitApp();
-        }
+        this.notificationService.confirmar(
+          'Salir de la aplicación',
+          '¿Querés cerrar la aplicación?',
+          () => CapacitorApp.exitApp(),
+          'Salir',
+        );
         return;
       }
 

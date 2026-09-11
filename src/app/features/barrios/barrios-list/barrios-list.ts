@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BarrioService } from '../../../core/services/barrio.service';
 import { Barrio, DIAS_SEMANA, DiaSemana } from '../../../core/models/barrio.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-barrios-list',
@@ -12,6 +13,7 @@ import { Barrio, DIAS_SEMANA, DiaSemana } from '../../../core/models/barrio.mode
 })
 export default class BarriosList implements OnInit {
   private barrioService = inject(BarrioService);
+  private notificationService = inject(NotificationService);
 
   dias = DIAS_SEMANA;
   barrios = signal<Barrio[]>([]);
@@ -83,6 +85,7 @@ export default class BarriosList implements OnInit {
     this.nombreNuevo = '';
     this.diasSeleccionNuevo.set(new Set());
     this.agregando.set(false);
+    this.notificationService.mostrar(`Barrio ${barrio.nombre} creado correctamente.`, 'success');
   }
 
   editar(barrio: Barrio) {
@@ -102,6 +105,7 @@ export default class BarriosList implements OnInit {
       next: (actualizado) => {
         this.barrios.update((lista) => lista.map((b) => (b.id === actualizado.id ? actualizado : b)));
         this.editandoId.set(null);
+        this.notificationService.mostrar(`Barrio ${actualizado.nombre} actualizado.`, 'success');
       },
       error: (err) => this.error.set(err.error?.error ?? 'No se pudo guardar'),
     });
@@ -112,10 +116,21 @@ export default class BarriosList implements OnInit {
   }
 
   eliminar(barrio: Barrio) {
-    if (!confirm(`¿Eliminar el barrio "${barrio.nombre}"? Solo se puede eliminar si no tiene clientes activos.`)) return;
+    this.notificationService.confirmar(
+      'Eliminar barrio',
+      `¿Querés eliminar "${barrio.nombre}"?`,
+      () => this.confirmarEliminacion(barrio),
+      'Eliminar',
+      { advertencia: 'Solo se puede eliminar si no tiene clientes activos.' },
+    );
+  }
 
+  private confirmarEliminacion(barrio: Barrio) {
     this.barrioService.eliminar(barrio.id).subscribe({
-      next: () => this.barrios.update((lista) => lista.filter((b) => b.id !== barrio.id)),
+      next: () => {
+        this.barrios.update((lista) => lista.filter((b) => b.id !== barrio.id));
+        this.notificationService.mostrar(`Barrio ${barrio.nombre} eliminado.`, 'success');
+      },
       error: (err) => this.error.set(err.error?.error ?? 'No se pudo eliminar el barrio'),
     });
   }

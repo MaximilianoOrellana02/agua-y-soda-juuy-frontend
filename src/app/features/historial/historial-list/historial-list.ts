@@ -5,6 +5,7 @@ import { Historial } from '../../../core/models/historial.model';
 import { DatePipe } from '@angular/common';
 import * as XLSX from 'xlsx';
 import DashboardModal from '../../../shared/dashboard-modal/dashboard-modal';
+import { NotificationService } from '../../../core/services/notification.service';
 
 
 type Filtro = 'hoy' | 'semana' | 'mes' | 'todos';
@@ -18,6 +19,7 @@ type Filtro = 'hoy' | 'semana' | 'mes' | 'todos';
 })
 export default class HistorialList implements OnInit {
   private historialService = inject(HistorialService);
+  private notificationService = inject(NotificationService);
 
 
   entregas = signal<Historial[]>([]);
@@ -146,6 +148,7 @@ export default class HistorialList implements OnInit {
         XLSX.writeFile(libro, nombreArchivo);
 
         this.exportando.set(false);
+        this.notificationService.mostrar(`Archivo ${nombreArchivo} generado correctamente.`, 'success');
       },
       error: () => {
         this.error.set('No se pudo exportar el historial');

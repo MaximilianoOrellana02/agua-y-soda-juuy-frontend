@@ -5,6 +5,7 @@ import { ClienteService } from '../../../core/services/cliente.service';
 import { BarrioService } from '../../../core/services/barrio.service';
 import { Cliente, ClienteDeudaVieja } from '../../../core/models/cliente.model';
 import { Barrio, DIAS_SEMANA, DiaSemana, diaDeHoy } from '../../../core/models/barrio.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 type FiltroDia = DiaSemana | 'restaurantes' | '';
 
@@ -18,6 +19,7 @@ export default class ClientesList implements OnInit {
   private clienteService = inject(ClienteService);
   private barrioService = inject(BarrioService);
   private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
   dias = DIAS_SEMANA.filter((d) => d.valor !== 'domingo');
 
@@ -26,6 +28,7 @@ export default class ClientesList implements OnInit {
   cargando = signal(true);
   error = signal<string | null>(null);
   busqueda = signal('');
+  viendoArchivados = signal(false);
 
   diaSeleccionado = signal<FiltroDia>(this.calcularDiaInicial());
 
@@ -61,19 +64,35 @@ export default class ClientesList implements OnInit {
     this.limiteVisible.set(5);
   }
 
+  toggleArchivados() {
+    this.viendoArchivados.update((valor) => !valor);
+    this.filtroDeudaViejaActivo.set(false);
+    this.limiteVisible.set(5);
+    this.cargarClientes();
+  }
+
   verMas() {
     this.limiteVisible.update((val) => val + 15);
   }
 
   cargarClientes() {
     this.cargando.set(true);
-    this.clienteService.listar().subscribe({
+    this.error.set(null);
+    const listado = this.viendoArchivados()
+      ? this.clienteService.listarDesactivados()
+      : this.clienteService.listar();
+
+    listado.subscribe({
       next: (data) => {
         this.clientes.set(data);
         this.cargando.set(false);
       },
       error: () => {
-        this.error.set('No se pudieron cargar los clientes');
+        this.error.set(
+          this.viendoArchivados()
+            ? 'No se pudieron cargar los clientes archivados'
+            : 'No se pudieron cargar los clientes',
+        );
         this.cargando.set(false);
       },
     });
@@ -97,6 +116,13 @@ export default class ClientesList implements OnInit {
     }
 
     const texto = this.busqueda().toLowerCase().trim();
+
+    if (this.viendoArchivados()) {
+      return this.clientes().filter((c) =>
+        `${c.nombre} ${c.apellido}`.toLowerCase().includes(texto),
+      );
+    }
+
     const filtro = this.diaSeleccionado();
 
     return this.clientes().filter((c) => {
@@ -156,6 +182,12 @@ export default class ClientesList implements OnInit {
       next: (actualizado) => {
         this.clientes.update((lista) =>
           lista.map((c) => (c.id === actualizado.id ? actualizado : c))
+        );
+        this.notificationService.mostrar(
+          nuevoEstado
+            ? `${cliente.nombre} ${cliente.apellido} marcado como visitado.`
+            : `${cliente.nombre} ${cliente.apellido} volvió a pendientes.`,
+          'success',
         );
       },
       error: () => {

@@ -1,7 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-usuario-nuevo',
@@ -11,11 +12,10 @@ import { UsuarioService } from '../../../core/services/usuario.service';
 })
 export default class UsuarioNuevo {
   private usuarioService = inject(UsuarioService);
-  private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
   guardando = signal(false)
 
-  error = signal<string | null>(null);
   exito = signal(false);
   verPassword = signal(false);
 
@@ -33,22 +33,21 @@ export default class UsuarioNuevo {
 
   guardar() {
     if (!this.form.username || !this.form.password || !this.form.nombreCompleto || !this.form.email) {
-      this.error.set('Completá todos los campos');
+      this.notificationService.mostrar('Completá todos los campos');
       return;
     }
 
     if (this.form.password.length < 6) {
-      this.error.set('La contraseña debe tener al menos 6 caracteres');
+      this.notificationService.mostrar('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
     if (this.form.password !== this.form.passwordConfirmar) {
-      this.error.set('Las contraseñas no coinciden');
+      this.notificationService.mostrar('Las contraseñas no coinciden');
       return;
     }
 
     this.guardando.set(true);
-    this.error.set(null);
 
     this.usuarioService
       .crearUsuario({
@@ -64,7 +63,7 @@ export default class UsuarioNuevo {
         },
         error: (err) => {
           this.guardando.set(false);
-          this.error.set(err.error?.error ?? 'No se pudo crear el usuario');
+          this.notificationService.mostrar(err.error?.error ?? 'No se pudo crear el usuario');
         },
       });
   }

@@ -8,6 +8,7 @@ import { Barrio } from '../../../core/models/barrio.model';
 import MapaCliente from '../../../shared/mapa-cliente/mapa-cliente';
 import { Geolocation } from '@capacitor/geolocation';
 import { Capacitor } from '@capacitor/core';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-cliente-nuevo',
@@ -18,15 +19,14 @@ import { Capacitor } from '@capacitor/core';
 export default class ClienteNuevo implements OnInit {
   private clienteService = inject(ClienteService);
   private barrioService = inject(BarrioService);
+  private notificationService = inject(NotificationService);
 
   private router = inject(Router);
 
   barrios = signal<Barrio[]>([]);
   guardando = signal(false);
-  error = signal<string | null>(null);
   mapaAbierto = signal(true);
   obteniendoUbicacion = signal(false);
-  errorUbicacion = signal<string | null>(null);
 
   toggleMapa() {
     this.mapaAbierto.update((v) => !v);
@@ -35,14 +35,12 @@ export default class ClienteNuevo implements OnInit {
   onPosicionCambiada(pos: { latitud: number; longitud: number }) {
     this.form.latitud = pos.latitud;
     this.form.longitud = pos.longitud;
-    this.errorUbicacion.set(null);
   }
 
   async usarMiUbicacion() {
     if (this.obteniendoUbicacion()) return;
 
     this.obteniendoUbicacion.set(true);
-    this.errorUbicacion.set(null);
 
     try {
       let latitud: number;
@@ -65,7 +63,7 @@ export default class ClienteNuevo implements OnInit {
       this.form.longitud = longitud;
       this.mapaAbierto.set(true);
     } catch (error) {
-      this.errorUbicacion.set(this.mensajeErrorUbicacion(error));
+      this.notificationService.mostrar(this.mensajeErrorUbicacion(error));
     } finally {
       this.obteniendoUbicacion.set(false);
     }
@@ -117,25 +115,44 @@ export default class ClienteNuevo implements OnInit {
 
   guardar() {
     if (!this.form.nombre || !this.form.apellido) {
-      this.error.set('Nombre y apellido son obligatorios');
+      this.notificationService.mostrar('Nombre y apellido son obligatorios');
       return;
     }
 
-    const resumen =
-      `Crear cliente\n\n` +
-      `Nombre: ${this.form.nombre} ${this.form.apellido}\n` +
-      `Dirección: ${this.form.direccion || 'Sin registrar'}\n` +
-      `Teléfono: ${this.form.telefono || 'Sin registrar'}\n` +
-      `Localidad: ${this.form.localidad || 'Sin registrar'}\n` +
-      `Tipo: ${this.form.tipoCliente === 'confianza' ? 'De confianza' : 'Particular'}\n\n` +
-      `Barrio: ${this.barrios().find((b) => b.id === this.form.barrioId)?.nombre || 'Sin asignar'}\n` +
-      `Categoría: ${this.form.categoria === 'restaurante' ? 'Restaurante' : 'Domicilio'}\n` +
-      `¿Confirmás la creación?`;
+    const barrio = this.barrios().find((b) => b.id === this.form.barrioId)?.nombre || 'Sin asignar';
 
-    if (!confirm(resumen)) return;
+    this.notificationService.confirmar(
+      `Crear cliente ${this.form.nombre} ${this.form.apellido}`,
+      '',
+      () => this.crearCliente(),
+      'Crear cliente',
+      {
+        etiquetaSuperior: 'Nuevo registro',
+        advertencia: this.form.barrioId
+          ? undefined
+          : 'Si no asignás un barrio, el cliente no aparecerá en el mapa de ruta.',
+        detalles: [
+          { etiqueta: 'Nombre', valor: `${this.form.nombre} ${this.form.apellido}` },
+          { etiqueta: 'Dirección', valor: this.form.direccion || 'Sin registrar' },
+          { etiqueta: 'Teléfono', valor: this.form.telefono || 'Sin registrar' },
+          { etiqueta: 'Localidad', valor: this.form.localidad || 'Sin registrar' },
+          {
+            etiqueta: 'Tipo',
+            valor: this.form.tipoCliente === 'confianza' ? 'De confianza' : 'Particular',
+            tono: 'info',
+          },
+          { etiqueta: 'Barrio', valor: barrio, tono: this.form.barrioId ? undefined : 'warning' },
+          {
+            etiqueta: 'Categoría',
+            valor: this.form.categoria === 'restaurante' ? 'Restaurante' : 'Domicilio',
+          },
+        ],
+      },
+    );
+  }
 
+  private crearCliente() {
     this.guardando.set(true);
-    this.error.set(null);
 
     const payload = {
       ...this.form,
@@ -146,11 +163,15 @@ export default class ClienteNuevo implements OnInit {
 
     this.clienteService.crear(payload).subscribe({
       next: (cliente) => {
+        this.notificationService.mostrar(
+          `Cliente ${cliente.nombre} ${cliente.apellido} creado correctamente.`,
+          'success',
+        );
         this.router.navigate(['/clientes', cliente.id]);
       },
       error: (err) => {
         this.guardando.set(false);
-        this.error.set(err.error?.error ?? 'No se pudo crear el cliente');
+        this.notificationService.mostrar(err.error?.error ?? 'No se pudo crear el cliente');
       },
     });
   }

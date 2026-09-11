@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import * as XLSX from 'xlsx';
 import { ProductoService } from '../../../core/services/producto.service';
 import { MovimientoStock } from '../../../core/models/producto.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 type FiltroTipo = 'todos' | 'entrada' | 'salida';
 
@@ -23,6 +24,7 @@ const MESES = [
 })
 export default class MovimientosStockList implements OnInit {
   private productoService = inject(ProductoService);
+  private notificationService = inject(NotificationService);
 
   movimientos = signal<MovimientoStock[]>([]);
   cargando = signal(true);
@@ -117,7 +119,9 @@ export default class MovimientosStockList implements OnInit {
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Movimientos');
 
-    XLSX.writeFile(libro, `movimientos-stock-${this.etiquetaPeriodo()}.xlsx`);
+    const nombreArchivo = `movimientos-stock-${this.etiquetaPeriodo()}.xlsx`;
+    XLSX.writeFile(libro, nombreArchivo);
     this.exportando.set(false);
+    this.notificationService.mostrar(`Archivo ${nombreArchivo} generado correctamente.`, 'success');
   }
 }
