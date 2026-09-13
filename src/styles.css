@@ -35,6 +35,24 @@ body {
   transition: background 0.2s ease;
 }
 
+/* Los componentes de ruta quedan fuera del encapsulado CSS del shell.
+   Solo animamos opacidad para conservar la posición de sus elementos fijos. */
+@media (prefers-reduced-motion: no-preference) {
+  app-shell .shell-content > router-outlet + * {
+    display: block;
+    animation: shell-page-enter 180ms ease-out;
+  }
+}
+
+@keyframes shell-page-enter {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media print {
 
   .navbar,
