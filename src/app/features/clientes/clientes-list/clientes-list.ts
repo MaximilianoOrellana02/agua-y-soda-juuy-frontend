@@ -35,6 +35,7 @@ export default class ClientesList implements OnInit {
   deudaVieja = signal<ClienteDeudaVieja[]>([]);
   filtroDeudaViejaActivo = signal(false);
   limiteVisible = signal(5);
+  restaurandoId = signal<string | null>(null);
 
   private calcularDiaInicial(): FiltroDia {
     const hoy = diaDeHoy();
@@ -163,6 +164,42 @@ export default class ClientesList implements OnInit {
 
   llamar(event: Event, telefono: string) {
     event.stopPropagation();
+  }
+
+  restaurarCliente(event: Event, cliente: Cliente) {
+    event.stopPropagation();
+    if (this.restaurandoId()) return;
+
+    this.notificationService.confirmar(
+      'Restaurar cliente',
+      `¿Querés volver a activar a ${cliente.nombre} ${cliente.apellido}?`,
+      () => this.confirmarRestauracion(cliente),
+      'Restaurar',
+      {
+        advertencia: 'El cliente volverá a aparecer en los listados activos y podrá recibir pedidos y entregas.',
+      },
+    );
+  }
+
+  private confirmarRestauracion(cliente: Cliente) {
+    this.restaurandoId.set(cliente.id);
+
+    this.clienteService.restaurarCliente(cliente.id).subscribe({
+      next: () => {
+        this.clientes.update((lista) => lista.filter((item) => item.id !== cliente.id));
+        this.restaurandoId.set(null);
+        this.notificationService.mostrar(
+          `${cliente.nombre} ${cliente.apellido} fue restaurado correctamente.`,
+          'success',
+        );
+      },
+      error: (err) => {
+        this.restaurandoId.set(null);
+        this.notificationService.mostrar(
+          err.error?.error ?? 'No se pudo restaurar el cliente.',
+        );
+      },
+    });
   }
 
   private fechaHoy(): string {

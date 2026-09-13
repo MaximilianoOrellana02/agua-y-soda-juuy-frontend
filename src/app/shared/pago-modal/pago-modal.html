@@ -4,21 +4,38 @@
     <div class="sheet-handle"></div>
 
     <div class="sheet-header">
-        <h2>Registrar pago</h2>
-        <button class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar">
+        <div class="sheet-heading">
+            <span class="sheet-icon" aria-hidden="true"><i class="bi bi-cash-coin"></i></span>
+            <div>
+                <h2>Registrar pago</h2>
+                <p>{{ nombreCliente() }}</p>
+            </div>
+        </div>
+        <button type="button" class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
 
-    <p class="saldo-info">
-        Saldo actual: <strong>${{ saldoActual() }}</strong>
-    </p>
-
-    <div class="form-group">
-        <label>Monto pagado</label>
-        <input type="number" min="0" step="0.01" [(ngModel)]="monto" name="monto" />
+    <div class="saldo-card">
+        <div>
+            <span>Saldo actual</span>
+            <strong>${{ saldoActual().toLocaleString('es-AR') }}</strong>
+        </div>
+        @if (saldoActual() > 0) {
+        <button type="button" (click)="monto = saldoActual()">Usar total</button>
+        }
     </div>
 
+    <div class="monto-group">
+        <label for="montoPago">Monto pagado</label>
+        <div class="monto-input">
+            <span aria-hidden="true">$</span>
+            <input id="montoPago" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"
+                [(ngModel)]="monto" name="monto" />
+        </div>
+    </div>
+
+    <span class="section-label">Método de pago</span>
     <div class="metodo-chips">
         <button type="button" class="metodo-chip" [class.active]="metodoPago() === 'efectivo'"
             (click)="metodoPago.set('efectivo')">
@@ -30,9 +47,10 @@
         </button>
     </div>
 
-    <div class="form-group">
-        <label>Observación (opcional)</label>
-        <input type="text" [(ngModel)]="observacion" name="observacion" placeholder="Ej: Pagó en el local" />
+    <div class="observacion-group">
+        <label for="observacionPago">Observación <span>Opcional</span></label>
+        <input id="observacionPago" type="text" [(ngModel)]="observacion" name="observacion"
+            placeholder="Ej: Pagó en el local" />
     </div>
 
     @if (error()) {
@@ -41,7 +59,10 @@
     </div>
     }
 
-    <button class="btn-confirmar" [disabled]="guardando()" (click)="confirmar()">
-        {{ guardando() ? 'Registrando...' : 'Confirmar pago' }}
+    <button type="button" class="btn-confirmar" [disabled]="guardando()" (click)="confirmar()">
+        <span>{{ guardando() ? 'Registrando...' : 'Confirmar pago' }}</span>
+        @if (!guardando() && monto > 0) {
+        <strong>${{ monto.toLocaleString('es-AR') }}</strong>
+        }
     </button>
 </div>

@@ -16,9 +16,9 @@
         </div>
     </header>
 
-    <div class="search-bar">
+    <div class="search-bar" role="search">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Buscar cliente..." [value]="busqueda()"
+        <input type="search" aria-label="Buscar cliente" placeholder="Buscar por nombre o apellido..." [value]="busqueda()"
             (input)="onBusqueda($any($event.target).value)" />
     </div>
     @if (!viendoArchivados() && deudaVieja().length > 0) {
@@ -88,7 +88,14 @@
 
             <div class="client-side">
                 @if (viendoArchivados()) {
-                <span class="archive-badge"><i class="bi bi-archive"></i> Archivado</span>
+                <button type="button" class="btn-restore" (click)="restaurarCliente($event, cliente)"
+                    [disabled]="restaurandoId() !== null"
+                    [attr.aria-label]="restaurandoId() === cliente.id ? 'Restaurando cliente' : 'Restaurar cliente'">
+                    <i class="bi" [class.bi-arrow-repeat]="restaurandoId() === cliente.id"
+                        [class.bi-arrow-counterclockwise]="restaurandoId() !== cliente.id"
+                        [class.is-loading]="restaurandoId() === cliente.id" aria-hidden="true"></i>
+                    <span>{{ restaurandoId() === cliente.id ? 'Restaurando' : 'Restaurar' }}</span>
+                </button>
                 } @else {
                 <div class="amount">
                     <span class="amount-value">{{ cliente.saldoActual | number:'1.0-0' }}</span>

@@ -68,4 +68,8 @@ export class ClienteService {
       params: { dias },
     });
   }
+
+  restaurarCliente(id: string): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/${id}/restaurar`, {});
+  }
 }
