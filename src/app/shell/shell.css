@@ -100,7 +100,7 @@
     display: flex;
     background: var(--color-surface);
     border: 1.5px solid var(--color-border);
-    border-radius: 22px;
+    border-radius: 30px;
     padding: 0.5rem 0.4rem calc(0.5rem + env(safe-area-inset-bottom));
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     isolation: isolate;
@@ -114,7 +114,7 @@
     bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
     left: 0.4rem;
     width: calc((100% - 0.8rem) / 4);
-    border-radius: 14px;
+    border-radius: 22px;
     background: var(--color-surface-raised);
     background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
     transform: translateX(calc(var(--active-tab) * 100%));
@@ -150,7 +150,7 @@
     justify-content: center;
     gap: 0.2rem;
     padding: 0.45rem 0;
-    border-radius: 14px;
+    border-radius: 22px;
     color: var(--color-muted);
     text-decoration: none;
     font-size: 0.82rem;
