@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { RolUsuario } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-usuario-nuevo',
@@ -25,6 +26,7 @@ export default class UsuarioNuevo {
     passwordConfirmar: '',
     nombreCompleto: '',
     email: '',
+    rol: 'repartidor' as RolUsuario,
   };
 
   togglePassword() {
@@ -55,6 +57,7 @@ export default class UsuarioNuevo {
         password: this.form.password,
         nombreCompleto: this.form.nombreCompleto,
         email: this.form.email,
+        rol: this.form.rol,
       })
       .subscribe({
         next: () => {

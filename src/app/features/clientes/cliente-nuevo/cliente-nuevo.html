@@ -74,6 +74,25 @@
             </div>
         </div>
 
+        <!-- Indicaciones para el repartidor -->
+        <div class="form-section">
+            <div class="section-header">
+                <span class="section-title">Indicaciones para el repartidor</span>
+            </div>
+            <div class="grid-2">
+                <div class="form-cell full-width">
+                    <label for="notaRepartidor">NOTA</label>
+                    <input id="notaRepartidor" type="text" maxlength="255" [(ngModel)]="form.notaRepartidor"
+                        name="notaRepartidor" placeholder="Timbre blanco lateral, perro chico en el patio" />
+                </div>
+                <div class="form-cell full-width">
+                    <label for="referencia">REFERENCIA</label>
+                    <input id="referencia" type="text" maxlength="100" [(ngModel)]="form.referencia" name="referencia"
+                        placeholder="Portón negro" />
+                </div>
+            </div>
+        </div>
+
         <!-- SECCIÓN 3: Marcar en el mapa -->
         <div class="form-section map-section">
             <div class="section-header map-header" (click)="toggleMapa()">

@@ -5,9 +5,11 @@
             <a routerLink="/productos/movimientos" class="btn-icon-header" aria-label="Ver movimientos">
                 <i class="bi bi-list-ul"></i>
             </a>
+            @if (authService.esAdmin()) {
             <a routerLink="/productos/nuevo" class="btn-add" aria-label="Nuevo producto">
                 <i class="bi bi-plus-lg"></i>
             </a>
+            }
         </div>
     </header>
 
@@ -62,12 +64,8 @@
 
             <div class="product-prices">
                 <div class="price-chip">
-                    <span class="price-label">Particular</span>
-                    <span class="price-value">{{ precioParticular(producto) ?? '—' }}</span>
-                </div>
-                <div class="price-chip">
-                    <span class="price-label">Confianza</span>
-                    <span class="price-value">{{ precioConfianza(producto) ?? '—' }}</span>
+                    <span class="price-label">Precio</span>
+                    <span class="price-value" [class.empty]="precioParticular(producto) === null">{{ precioParticular(producto) ?? '—' }}</span>
                 </div>
             </div>
         </li>

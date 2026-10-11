@@ -1,0 +1,100 @@
+<div class="page">
+    <header class="page-header">
+        <a routerLink="/hoy" class="btn-icon" aria-label="Volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h1>Camionetas</h1>
+        @if (authService.esAdmin()) {
+        <button type="button" class="btn-add" (click)="abrirAlta()" aria-label="Nueva camioneta">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+        } @else {
+        <span class="btn-icon-spacer"></span>
+        }
+    </header>
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (error()) {
+    <div class="state-message error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+    </div>
+    }
+
+    @if (!cargando() && !error() && camionetas().length === 0) {
+    <div class="state-message">
+        <i class="bi bi-truck"></i>
+        <p>No hay camionetas cargadas{{ authService.esAdmin() ? '. Agregá la primera con el botón +.' : '' }}</p>
+    </div>
+    }
+
+    @if (camionetas().length > 0) {
+    <p class="section-title">{{ camionetas().length }} {{ camionetas().length === 1 ? 'camioneta' : 'camionetas' }}</p>
+    }
+
+    <ul class="lista">
+        @for (c of camionetas(); track c.id) {
+        <li class="item" [class.actual]="esLaDeHoy(c)" [class.inactiva]="!c.activa">
+            <a class="item-link" [routerLink]="['/camionetas', c.id]">
+                <span class="item-icono"><i class="bi bi-truck"></i></span>
+                <span class="item-info">
+                    <span class="item-nombre">{{ c.nombre }}</span>
+                    <span class="item-sub">
+                        {{ c.patente || 'Sin patente' }}
+                        @if (!c.activa) { · <span class="tag">Inactiva</span> }
+                        @if (esLaDeHoy(c)) { · <span class="tag tag-hoy">En uso hoy</span> }
+                    </span>
+                </span>
+                <i class="bi bi-chevron-right item-chevron" aria-hidden="true"></i>
+            </a>
+            @if (authService.esAdmin()) {
+            <button type="button" class="item-editar" (click)="abrirEdicion(c)" [attr.aria-label]="'Editar ' + c.nombre">
+                <i class="bi bi-pencil"></i>
+            </button>
+            }
+        </li>
+        }
+    </ul>
+</div>
+
+@if (mostrarFormulario()) {
+<div class="sheet-overlay" (click)="cerrarFormulario()"></div>
+<form class="sheet" (ngSubmit)="guardar()">
+    <h3>{{ editandoId() ? 'Editar camioneta' : 'Nueva camioneta' }}</h3>
+
+    <div class="form-group">
+        <label for="nombreCamioneta">Nombre *</label>
+        <input id="nombreCamioneta" type="text" maxlength="60" [(ngModel)]="form.nombre" name="nombre"
+            placeholder="Ej: Camioneta 1" />
+    </div>
+    <div class="form-group">
+        <label for="patenteCamioneta">Patente</label>
+        <input id="patenteCamioneta" type="text" maxlength="15" [(ngModel)]="form.patente" name="patente"
+            placeholder="Ej: AB 123 CD" />
+    </div>
+    @if (editandoId()) {
+    <label class="check-row">
+        <input type="checkbox" [(ngModel)]="form.activa" name="activa" />
+        <span>Activa <span class="form-hint">Una camioneta inactiva no se puede elegir ni cargar.</span></span>
+    </label>
+    }
+
+    @if (errorFormulario()) {
+    <div class="form-error">
+        <i class="bi bi-exclamation-circle"></i> {{ errorFormulario() }}
+    </div>
+    }
+
+    <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarFormulario()">Cancelar</button>
+        <button type="submit" class="btn-save" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+    </div>
+</form>
+}

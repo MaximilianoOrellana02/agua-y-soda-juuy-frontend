@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map, Observable, of } from 'rxjs';
 import { ClienteService } from '../../../core/services/cliente.service';
 import { ProductoService } from '../../../core/services/producto.service';
 import { HistorialService } from '../../../core/services/historial.service';
@@ -13,6 +13,8 @@ import { NotificationService } from '../../../core/services/notification.service
 
 import * as QRCode from 'qrcode';
 import { MercadopagoService } from '../../../core/services/mercadopago.service';
+import { CamionetaService } from '../../../core/services/camioneta.service';
+import { Camioneta } from '../../../core/models/camioneta.model';
 
 interface LineaEntrega {
   productoId: string;
@@ -38,6 +40,15 @@ export default class EntregaNueva implements OnInit {
   private historialService = inject(HistorialService);
   private mercadopagoService = inject(MercadopagoService)
   private notificationService = inject(NotificationService);
+  private camionetaService = inject(CamionetaService);
+
+  // De dónde sale la mercadería: id de camioneta o null = depósito. Arranca en la camioneta elegida hoy.
+  origen = signal<string | null>(null);
+  camionetas = signal<Camioneta[]>([]);
+  nombreOrigen = computed(() => {
+    const id = this.origen();
+    return id ? `la camioneta ${this.camionetas().find((c) => c.id === id)?.nombre ?? ''}`.trim() : 'el depósito';
+  });
 
 
   mpHabilitado = signal(false);
@@ -147,13 +158,18 @@ export default class EntregaNueva implements OnInit {
     }
 
     this.cargando.set(true);
+    const delDia = this.camionetaService.camionetaDelDia();
     forkJoin({
       cliente: this.clienteService.obtenerCliente(clienteId),
       productos: this.productoService.listar(),
       envases: this.clienteService.obtenerSaldoEnvases(clienteId),
+      camionetaDelDia: delDia !== undefined ? of(delDia) : this.camionetaService.cargarCamionetaDelDia(),
+      camionetas: this.camionetaService.listar(),
     }).subscribe({
-      next: ({ cliente, productos, envases }) => {
+      next: ({ cliente, productos, envases, camionetaDelDia, camionetas }) => {
         this.cliente.set(cliente);
+        this.camionetas.set(camionetas);
+        this.origen.set(camionetaDelDia?.activa ? camionetaDelDia.id : null);
 
         const envasesPorProducto = new Map(envases.map((e) => [e.productoId, e.cantidad]));
 
@@ -169,6 +185,7 @@ export default class EntregaNueva implements OnInit {
           }))
         );
         this.cargando.set(false);
+        if (this.origen()) this.refrescarStockOrigen();
       },
       error: () => {
         this.error.set('No se pudieron cargar los datos');
@@ -240,9 +257,41 @@ export default class EntregaNueva implements OnInit {
     return linea.envasesPreviosCliente + linea.cantidadEntregada;
   }
 
+  cambiarOrigen(origen: string | null) {
+    this.origen.set(origen || null);
+    this.error.set(null);
+    this.refrescarStockOrigen();
+  }
+
+  // Stock disponible por producto en el origen elegido (camioneta o depósito).
+  private stockDelOrigen(): Observable<Map<string, number>> {
+    const origen = this.origen();
+    if (!origen) {
+      return this.productoService.listar().pipe(
+        map((productos) => new Map(productos.map((p) => [p.id, Number(p.stockActual)]))),
+      );
+    }
+    return this.camionetaService.stock(origen).pipe(
+      map(({ stock }) => new Map(stock.map((s) => [s.productoId, s.cantidad]))),
+    );
+  }
+
+  private aplicarStock(stockPorProducto: Map<string, number>) {
+    this.lineas.update((lineas) =>
+      lineas.map((linea) => ({ ...linea, stockActual: stockPorProducto.get(linea.productoId) ?? 0 }))
+    );
+  }
+
+  private refrescarStockOrigen() {
+    this.stockDelOrigen().subscribe({
+      next: (stock) => this.aplicarStock(stock),
+      error: () => this.error.set(`No se pudo cargar el stock de ${this.nombreOrigen()}`),
+    });
+  }
+
   sumar(linea: LineaEntrega) {
     if (linea.cantidadEntregada >= linea.stockActual) {
-      this.error.set(`No hay stock suficiente de ${linea.nombre}. Disponible: ${linea.stockActual}`);
+      this.error.set(`No hay stock suficiente de ${linea.nombre} en ${this.nombreOrigen()}. Disponible: ${linea.stockActual}`);
       return;
     }
     this.error.set(null);
@@ -301,18 +350,9 @@ export default class EntregaNueva implements OnInit {
     this.verificandoStock.set(true);
     this.error.set(null);
 
-    this.productoService.listar().subscribe({
-      next: (productos) => {
-        const stockPorProducto = new Map(
-          productos.map((producto) => [producto.id, Number(producto.stockActual)])
-        );
-
-        this.lineas.update((lineas) =>
-          lineas.map((linea) => ({
-            ...linea,
-            stockActual: stockPorProducto.get(linea.productoId) ?? 0,
-          }))
-        );
+    this.stockDelOrigen().subscribe({
+      next: (stockPorProducto) => {
+        this.aplicarStock(stockPorProducto);
 
         const faltantes = this.lineas().filter(
           (linea) => linea.cantidadEntregada > linea.stockActual
@@ -327,7 +367,7 @@ export default class EntregaNueva implements OnInit {
                 `${linea.nombre} (solicitado: ${linea.cantidadEntregada}, disponible: ${linea.stockActual})`
             )
             .join(', ');
-          this.error.set(`Stock insuficiente: ${detalle}`);
+          this.error.set(`Stock insuficiente en ${this.nombreOrigen()}: ${detalle}`);
           return;
         }
 
@@ -374,6 +414,8 @@ export default class EntregaNueva implements OnInit {
         observacion: this.observacion || undefined,
         metodoPago: this.metodoPago(),
         pedidoId: this.pedidoId ?? undefined,
+        // Siempre explícito: lo que se ve en pantalla es lo que se descuenta (null = depósito).
+        camionetaId: this.origen(),
         detalles,
         ...(this.editandoSaldo() ? {
           ajusteSaldo: {
@@ -410,7 +452,7 @@ export default class EntregaNueva implements OnInit {
       : '(Entrega informal, sin productos cargados)';
 
     return (
-      `${detalleTexto}\n\n` +
+      `${detalleTexto}\nSale de ${this.nombreOrigen()}.\n\n` +
       (this.editandoSaldo()
         ? `Se cambiará el saldo anterior de $${this.saldoRegistrado()} a $${this.saldoAnterior()}.\nMotivo: ${this.motivoAjuste.trim()}\n\n`
         : `Saldo anterior: $${this.saldoAnterior()}\n`) +

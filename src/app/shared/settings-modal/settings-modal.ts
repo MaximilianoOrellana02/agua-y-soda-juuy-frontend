@@ -1,9 +1,11 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, OnInit, output, signal } from '@angular/core';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/services/notification.service';
+import { BarrioService } from '../../core/services/barrio.service';
+import { CamionetaService } from '../../core/services/camioneta.service';
 
 type Vista = 'menu' | 'password';
 
@@ -13,10 +15,16 @@ type Vista = 'menu' | 'password';
   templateUrl: './settings-modal.html',
   styleUrl: './settings-modal.css',
 })
-export default class SettingsModal {
+export default class SettingsModal implements OnInit {
   themeService = inject(ThemeService);
   authService = inject(AuthService);
+  camionetaService = inject(CamionetaService);
+  private barrioService = inject(BarrioService);
   private notificationService = inject(NotificationService);
+
+  totalBarrios = signal<number | null>(null);
+  totalCamionetas = signal<number | null>(null);
+  enLinea = signal(typeof navigator === 'undefined' || navigator.onLine);
 
   cerrar = output<void>();
   vista = signal<Vista>('menu');
@@ -28,6 +36,22 @@ export default class SettingsModal {
   error = signal<string | null>(null);
   exito = signal(false);
   verPassword = signal(false);
+
+  ngOnInit() {
+    this.barrioService.listar().subscribe({
+      next: (barrios) => this.totalBarrios.set(barrios.length),
+      error: () => this.totalBarrios.set(null),
+    });
+    this.camionetaService.listar().subscribe({
+      next: (camionetas) => this.totalCamionetas.set(camionetas.length),
+      error: () => this.totalCamionetas.set(null),
+    });
+  }
+
+  inicialesUsuario(): string {
+    const nombre = this.authService.usuarioActual()?.nombreCompleto.trim() ?? '';
+    return nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte.charAt(0)).join('').toUpperCase() || 'US';
+  }
 
   toggleTheme() {
     this.themeService.toggle();

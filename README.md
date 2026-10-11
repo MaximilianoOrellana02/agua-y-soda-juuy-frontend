@@ -12,6 +12,19 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Vista previa en iPhone (misma red)
+
+Con el backend local funcionando en el puerto 3001, ejecutá:
+
+```bash
+npm run build
+npm run iphone
+```
+
+Abrí en el iPhone la dirección de la red local que imprime el segundo comando. La vista previa sirve la compilación actual y envía `/api` al backend local. Después de cambiar el frontend, detené la vista previa, volvé a compilar y ejecutá `npm run iphone` otra vez.
+
+Safari requiere HTTPS para acceder al GPS. La URL local HTTP permite revisar la app, pero el filtro de cercanía del mapa necesita una URL HTTPS.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

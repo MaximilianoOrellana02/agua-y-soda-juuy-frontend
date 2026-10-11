@@ -108,33 +108,6 @@
 }
 
 /* ---------- Progreso ---------- */
-.progreso-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 18px;
-    padding: 1.1rem 1.25rem;
-    margin-bottom: 0.9rem;
-}
-
-.progreso-top {
-    display: flex;
-    align-items: baseline;
-    gap: 0.45rem;
-    margin-bottom: 0.6rem;
-}
-
-.progreso-numero {
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 800;
-    font-size: 1.8rem;
-    color: var(--color-primary-dark);
-}
-
-.progreso-total {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--color-muted);
-}
 
 .progreso-track {
     height: 10px;
@@ -262,12 +235,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.parada-deuda {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--color-debt);
 }
 
 .paradas-realizadas-header {
@@ -403,4 +370,266 @@
     .parada-actions > * {
         flex: 1;
     }
+}
+
+.camioneta-chip {
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background: var(--color-surface-raised);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+/* ---------- Terminar reparto ---------- */
+.btn-terminar-reparto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin: 0 0 0.9rem;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: 14px;
+    background: var(--color-credit);
+    color: white;
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+.btn-terminar-reparto:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn-terminar-reparto:disabled {
+    background: var(--color-surface);
+    color: var(--color-muted);
+    border: 1.5px dashed var(--color-border);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: default;
+}
+
+/* ---------- Buscador ---------- */
+.buscador {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-surface);
+    cursor: text;
+}
+
+.buscador:focus-within {
+    border-color: var(--color-primary);
+}
+
+.buscador > .bi-search {
+    color: var(--color-muted);
+    font-size: 1.05rem;
+}
+
+.buscador input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--color-ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.buscador input::placeholder {
+    color: var(--color-muted);
+}
+
+.buscador input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
+
+.buscador-limpiar {
+    display: flex;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-muted);
+    cursor: pointer;
+}
+
+/* ---------- Fila camioneta + progreso ---------- */
+.resumen-fila {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 0.9rem;
+}
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 0.9rem 0.95rem;
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-family: inherit;
+    text-align: left;
+}
+
+button.tile {
+    cursor: pointer;
+    transition: transform 0.12s ease;
+}
+
+button.tile:active {
+    transform: scale(0.98);
+}
+
+.tile-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--color-primary-dark);
+}
+
+.tile-nombre {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tile-chevron {
+    margin-left: auto;
+    color: var(--color-muted);
+    font-size: 0.8rem;
+}
+
+.tile-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted);
+}
+
+.tile-sub {
+    font-size: 0.82rem;
+    color: var(--color-muted);
+}
+
+.tile-numero {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--color-ink);
+}
+
+.tile-progreso .tile-numero {
+    color: var(--color-primary-dark);
+}
+
+.tile-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.tile-vacia {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-warning);
+}
+
+.tile-pie {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+}
+
+.tile-camioneta {
+    border: 2px solid var(--color-primary);
+}
+
+.tile-comenzar {
+    position: relative;
+    border: none;
+    background: var(--color-primary);
+    color: white;
+}
+
+.tile-comenzar .tile-titulo,
+.tile-comenzar .tile-sub {
+    color: white;
+}
+
+.tile-comenzar .tile-sub {
+    opacity: 0.9;
+}
+
+.tile-flecha {
+    margin-top: auto;
+    font-size: 1.5rem;
+}
+
+.tile-terminado {
+    border: 2px solid var(--color-credit);
+}
+
+.tile-terminado .tile-titulo {
+    color: var(--color-credit);
+}
+
+/* ---------- Paradas: pedido y cobro pendiente ---------- */
+.parada-pedido {
+    font-size: 0.8rem;
+    color: var(--color-primary-dark);
+}
+
+.parada-deuda {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    align-self: flex-start;
+    margin-top: 0.3rem;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--color-warning) 55%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+    color: #9a6a00;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.parada-deuda::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-warning);
+}
+
+:host-context([data-theme='dark']) .parada-deuda {
+    color: var(--color-warning);
 }

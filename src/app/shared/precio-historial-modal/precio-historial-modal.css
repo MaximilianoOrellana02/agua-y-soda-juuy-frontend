@@ -113,10 +113,6 @@
     margin-top: 4px;
 }
 
-.timeline-dot.confianza {
-    background: #1f9d75;
-}
-
 .timeline-content {
     flex: 1;
     display: flex;
@@ -139,11 +135,6 @@
     background: #eaf6f4;
     padding: 0.15rem 0.5rem;
     border-radius: 999px;
-}
-
-.badge-tipo.confianza {
-    color: #1a7f5e;
-    background: #e6f7ef;
 }
 
 .timeline-precio {

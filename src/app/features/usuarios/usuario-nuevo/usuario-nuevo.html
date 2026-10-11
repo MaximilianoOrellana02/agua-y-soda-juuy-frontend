@@ -62,6 +62,22 @@
             </div>
         </div>
 
+        <!-- SECCIÓN 3: Rol -->
+        <div class="form-section">
+            <div class="section-header">
+                <span class="section-title">Rol</span>
+            </div>
+            <div class="grid-2">
+                <div class="form-cell full-width">
+                    <label for="rol">PERMISOS</label>
+                    <select id="rol" [(ngModel)]="form.rol" name="rol">
+                        <option value="repartidor">Repartidor</option>
+                        <option value="admin">Administrador (precios, productos y usuarios)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="form-actions">
             <a routerLink="/clientes" class="btn-cancel">Cancelar</a>
             <button type="submit" class="btn-save" [disabled]="guardando()">

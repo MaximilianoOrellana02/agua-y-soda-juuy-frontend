@@ -8,6 +8,7 @@ export interface ResultadoRutaOptima<T> {
     geometria: [number, number][];
     distanciaKm: number;
     duracionMin: number;
+    duracionesTramosMin: number[];
 }
 
 export async function calcularRutaOptima<T extends PuntoRuta>(
@@ -49,6 +50,7 @@ export async function calcularRutaOptima<T extends PuntoRuta>(
             geometria,
             distanciaKm: datos.trips[0].distance / 1000,
             duracionMin: datos.trips[0].duration / 60,
+            duracionesTramosMin: datos.trips[0].legs.map((tramo: { duration: number }) => tramo.duration / 60),
         };
     } catch (error) {
         clearTimeout(timeoutId);
@@ -56,26 +58,14 @@ export async function calcularRutaOptima<T extends PuntoRuta>(
     }
 }
 
-export function armarLinkGoogleMaps(inicio: PuntoRuta, puntos: PuntoRuta[]): string {
-    if (puntos.length === 0) return '';
-
-    const destino = puntos[puntos.length - 1];
-    const paradas = puntos.slice(0, -1);
-
-    const origen = `${inicio.latitud},${inicio.longitud}`;
+export function armarLinkGoogleMapsDestino(destino: PuntoRuta): string {
     const destinoStr = `${destino.latitud},${destino.longitud}`;
-    const waypointsStr = paradas.map((p) => `${p.latitud},${p.longitud}`).join('|');
 
     const params = new URLSearchParams({
         api: '1',
-        origin: origen,
         destination: destinoStr,
         travelmode: 'driving',
     });
-
-    if (waypointsStr) {
-        params.set('waypoints', waypointsStr);
-    }
 
     return `https://www.google.com/maps/dir/?${params.toString()}`;
 }

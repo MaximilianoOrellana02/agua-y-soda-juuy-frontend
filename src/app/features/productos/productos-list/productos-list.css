@@ -1,29 +1,31 @@
 :host {
     display: block;
+    min-height: 100vh;
+    background: #faf7f3;
     font-family: 'Inter', sans-serif;
-    color: var(--color-ink);
+    color: #111c32;
 }
 
 .page {
     max-width: 560px;
     margin: 0 auto;
-    padding: 1.25rem 1rem 2rem;
+    padding: 1.6rem 1.25rem 2rem;
 }
 
 .page-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.6rem;
 }
 
 .page-header h1 {
     font-family: 'Sora', sans-serif;
     font-weight: 800;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     letter-spacing: -0.02em;
     margin: 0;
-    color: var(--color-primary-dark);
+    color: #d44b15;
 }
 
 .stock-bajo-icon {
@@ -38,11 +40,11 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--color-primary);
+    background: #f25a1b;
     color: white;
     font-size: 1.1rem;
     text-decoration: none;
-    box-shadow: 0 4px 12px rgba(14, 124, 134, 0.3);
+    box-shadow: 0 4px 12px rgba(242, 90, 27, 0.18);
     transition: transform 0.15s ease;
 }
 
@@ -85,7 +87,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.85rem;
 }
 
 .product-card {
@@ -93,11 +95,14 @@
     align-items: center;
     gap: 0.85rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    padding: 0.9rem 1.1rem;
+    border: 1px solid #f0e7dd;
+    border-radius: 24px;
+    min-height: 80px;
+    padding: 0.75rem 0.9rem;
+    box-sizing: border-box;
     cursor: pointer;
     transition: transform 0.12s ease;
+    box-shadow: 0 3px 10px rgba(75, 46, 19, 0.025);
 }
 
 .header-actions {
@@ -109,14 +114,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    color: var(--color-primary-dark);
+    border: 1px solid #eee1d4;
+    color: #d84a15;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    box-shadow: 0 2px 4px rgba(75, 46, 19, 0.05);
 }
 
 .product-card:active {
@@ -125,15 +131,15 @@
 
 .product-icon {
     flex-shrink: 0;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: #eaf6f4;
-    color: var(--color-primary-dark);
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: #e8f5f0;
+    color: #d9541f;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
 }
 
 .product-info {
@@ -141,28 +147,26 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.3rem;
 }
 
 .product-name {
     font-family: 'Sora', sans-serif;
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: 0.98rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .product-tag {
-    font-size: 0.68rem;
-    color: var(--color-muted);
+    font-size: 0.66rem;
+    color: #8d9cb6;
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
 
 .product-prices {
-    display: flex;
-    gap: 0.5rem;
     flex-shrink: 0;
 }
 
@@ -170,30 +174,38 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: var(--color-bg);
-    border-radius: 10px;
-    padding: 0.35rem 0.55rem;
-    min-width: 58px;
+    justify-content: center;
+    gap: 0.15rem;
+    background: #fbf5ef;
+    border-radius: 14px;
+    padding: 0.4rem 0.55rem;
+    min-width: 70px;
+    min-height: 48px;
+    box-sizing: border-box;
 }
 
 .price-label {
-    font-size: 0.6rem;
-    color: var(--color-muted);
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: #536989;
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 
 .price-value {
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--color-primary-dark);
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 0.97rem;
+    color: #d74c15;
+    letter-spacing: -0.04em;
 }
 
 .price-value::before {
     content: '$';
-    font-size: 0.65rem;
-    opacity: 0.7;
+}
+
+.price-value.empty::before {
+    content: '';
 }
 
 .banner-stock {
@@ -201,11 +213,58 @@
     align-items: center;
     gap: 0.6rem;
     background: #fef3e2;
-    border: 1.5px solid #f3ce8f;
+    border: 1px solid #f3ce8f;
     color: #92670b;
     font-size: 0.82rem;
     font-weight: 600;
     padding: 0.75rem 1rem;
-    border-radius: 12px;
+    border-radius: 14px;
     margin-bottom: 1rem;
+}
+
+@media (max-width: 380px) {
+    .page {
+        padding-right: 0.9rem;
+        padding-left: 0.9rem;
+    }
+
+    .product-card {
+        gap: 0.65rem;
+        padding: 0.7rem;
+    }
+
+    .product-icon {
+        width: 46px;
+        height: 46px;
+    }
+
+    .price-chip {
+        min-width: 66px;
+    }
+}
+
+:host-context([data-theme='dark']) {
+    background: var(--color-bg);
+    color: var(--color-ink);
+}
+
+:host-context([data-theme='dark']) .product-card,
+:host-context([data-theme='dark']) .btn-icon-header {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+}
+
+:host-context([data-theme='dark']) .product-name {
+    color: var(--color-ink);
+}
+
+:host-context([data-theme='dark']) .price-chip {
+    background: var(--color-surface-raised);
+}
+
+.btn-icon-header:focus-visible,
+.btn-add:focus-visible,
+.product-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
 }

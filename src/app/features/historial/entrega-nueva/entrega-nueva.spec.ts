@@ -8,6 +8,8 @@ import { ProductoService } from '../../../core/services/producto.service';
 import { HistorialService } from '../../../core/services/historial.service';
 import { MercadopagoService } from '../../../core/services/mercadopago.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { CamionetaService } from '../../../core/services/camioneta.service';
+import { signal } from '@angular/core';
 
 describe('Deuda anterior en la entrega', () => {
   let component: EntregaNueva;
@@ -26,6 +28,10 @@ describe('Deuda anterior en la entrega', () => {
         { provide: ProductoService, useValue: { listar: () => of([{ id: 'producto', stockActual: 10 }]) } },
         { provide: HistorialService, useValue: { crearEntrega } },
         { provide: MercadopagoService, useValue: {} },
+        {
+          provide: CamionetaService,
+          useValue: { camionetaDelDia: signal(null), stock: () => of({ stock: [{ productoId: 'producto', cantidad: 1 }] }) },
+        },
       ],
     });
     notificationService = TestBed.inject(NotificationService);
@@ -112,5 +118,23 @@ describe('Deuda anterior en la entrega', () => {
     expect(component.nuevoSaldoAnterior()).toBe(15000);
     expect(component.saldoRegistrado()).toBe(500);
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('envía el depósito explícito cuando no hay camioneta elegida', () => {
+    component.confirmar();
+    notificationService.aceptarConfirmacion();
+    expect(crearEntrega).toHaveBeenCalledWith(expect.objectContaining({ camionetaId: null }));
+  });
+
+  it('con camioneta valida contra su stock y la envía en la entrega', () => {
+    component.cambiarOrigen('camioneta-1');
+    component.confirmar();
+    // La camioneta lleva 1 y se intentan entregar 2: no llega a confirmar.
+    expect(component.error()).toContain('Stock insuficiente en la camioneta');
+    expect(notificationService.notificacion()).toBeNull();
+    component.lineas.update((lineas) => lineas.map((l) => ({ ...l, cantidadEntregada: 1 })));
+    component.confirmar();
+    notificationService.aceptarConfirmacion();
+    expect(crearEntrega).toHaveBeenCalledWith(expect.objectContaining({ camionetaId: 'camioneta-1' }));
   });
 });

@@ -1,0 +1,112 @@
+<div class="backdrop" (click)="cerrar.emit()"></div>
+
+<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="tituloCamionetaDia">
+    <button type="button" class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+    </button>
+
+    @if (paso() === 'elegir') {
+    @if (inicioDelDia()) {
+    <p class="saludo">Buen día 👋</p>
+    }
+    <h2 id="tituloCamionetaDia">¿Con qué camioneta salís hoy?</h2>
+
+    @if (cargando()) {
+    <div class="estado"><div class="spinner"></div></div>
+    } @else if (camionetas().length === 0 && !error()) {
+    <p class="estado">No hay camionetas activas. Las entregas salen del depósito.</p>
+    }
+
+    <div class="opciones">
+        @for (c of camionetas(); track c.id) {
+        <button type="button" class="opcion" [class.actual]="esActual(c)" [disabled]="guardando() !== null"
+            [attr.aria-pressed]="esActual(c)" (click)="elegir(c)">
+            @if (esActual(c)) {
+            <i class="bi bi-check-circle-fill marca" aria-hidden="true"></i>
+            }
+            <i class="bi bi-truck icono" aria-hidden="true"></i>
+            <span class="nombre">{{ guardando() === c.id ? 'Eligiendo…' : c.nombre }}</span>
+            @if (c.patente) {
+            <span class="patente">{{ c.patente }}</span>
+            }
+        </button>
+        }
+    </div>
+
+    @if (error()) {
+    <p class="error"><i class="bi bi-exclamation-circle"></i> {{ error() }}</p>
+    }
+
+    <button type="button" class="btn-texto" [disabled]="guardando() !== null" (click)="sinCamioneta()">
+        {{ guardando() === 'deposito' ? 'Guardando…' : 'Hoy no uso camioneta' }}
+    </button>
+    }
+
+    @if (paso() === 'cargar' && camionetaACargar(); as c) {
+    <button type="button" class="btn-volver" (click)="volverAElegir()" [disabled]="guardando() !== null">
+        <i class="bi bi-arrow-left"></i> Cambiar camioneta
+    </button>
+    <h2 id="tituloCamionetaDia">Cargá {{ c.nombre }}</h2>
+
+    @if (cargandoStock()) {
+    <div class="estado"><div class="spinner"></div></div>
+    } @else {
+    @if (yaTiene().length > 0) {
+    <p class="ya-tiene">
+        <i class="bi bi-info-circle"></i>
+        Ya tiene:
+        @for (l of yaTiene(); track l.productoId; let ultimo = $last) {
+        <strong>{{ l.enCamioneta }}</strong> {{ l.nombre }}{{ ultimo ? '' : ', ' }}
+        }
+    </p>
+    }
+
+    <ul class="lineas">
+        @for (l of lineas(); track l.productoId) {
+        <li class="linea" [class.activa]="l.cantidad > 0"
+            [class.falta]="descontarDeposito() && l.cantidad > l.enDeposito">
+            <div class="linea-info">
+                <span class="linea-nombre">{{ l.nombre }}</span>
+                <span class="linea-sub">Depósito: {{ l.enDeposito }}</span>
+            </div>
+            <div class="stepper">
+                <button type="button" (click)="sumar(l, -1)" [disabled]="l.cantidad === 0"
+                    [attr.aria-label]="'Restar ' + l.nombre">
+                    <i class="bi bi-dash"></i>
+                </button>
+                <input type="number" min="0" step="1" inputmode="numeric" [value]="l.cantidad"
+                    (change)="cambiarCantidad(l, $any($event.target).value)" [attr.aria-label]="'Cantidad de ' + l.nombre" />
+                <button type="button" (click)="sumar(l, 1)" [attr.aria-label]="'Sumar ' + l.nombre">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+        </li>
+        }
+    </ul>
+
+    <fieldset class="pregunta">
+        <legend>¿Descontar del stock general?</legend>
+        <label class="radio">
+            <input type="radio" name="descontar" [checked]="descontarDeposito()" (change)="descontarDeposito.set(true)" />
+            <span>Sí, sale del depósito</span>
+        </label>
+        <label class="radio">
+            <input type="radio" name="descontar" [checked]="!descontarDeposito()" (change)="descontarDeposito.set(false)" />
+            <span>No, el depósito queda igual</span>
+        </label>
+    </fieldset>
+    }
+
+    @if (error()) {
+    <p class="error"><i class="bi bi-exclamation-circle"></i> {{ error() }}</p>
+    }
+
+    <button type="button" class="btn-cargar" (click)="confirmarCarga()"
+        [disabled]="guardando() !== null || cargandoStock() || totalACargar() === 0">
+        {{ guardando() === 'carga' ? 'Cargando…' : 'Cargar ' + totalACargar() + ' u.' }}
+    </button>
+    <button type="button" class="btn-texto" [disabled]="guardando() !== null" (click)="cerrar.emit()">
+        Ahora no
+    </button>
+    }
+</div>

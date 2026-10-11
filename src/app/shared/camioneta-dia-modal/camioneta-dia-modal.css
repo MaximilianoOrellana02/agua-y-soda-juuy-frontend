@@ -1,0 +1,354 @@
+:host {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--color-ink);
+}
+
+.backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(16, 24, 28, 0.55);
+    animation: fade-in 0.15s ease;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.dialog {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    background: var(--color-surface);
+    border-radius: 22px;
+    padding: 1.6rem 1.25rem 1.1rem;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    animation: pop-in 0.18s ease;
+}
+
+@keyframes pop-in {
+    from { transform: scale(0.96); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.btn-close {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--color-bg);
+    color: var(--color-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.saludo {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+h2 {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    line-height: 1.25;
+    margin: 0 2.5rem 1.2rem 0;
+    color: var(--color-primary-dark);
+}
+
+.estado {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+    margin: 0;
+    color: var(--color-muted);
+    text-align: center;
+    font-size: 0.92rem;
+}
+
+.spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.opciones {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.opcion {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 118px;
+    justify-content: center;
+    padding: 1rem 0.6rem;
+    border-radius: 16px;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-ink);
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.12s ease, border-color 0.15s ease;
+}
+
+.opcion:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.opcion:disabled {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.opcion.actual {
+    border-color: var(--color-primary);
+    background: var(--color-surface-raised);
+}
+
+.icono {
+    font-size: 1.9rem;
+    color: var(--color-primary);
+}
+
+.marca {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.55rem;
+    color: var(--color-primary);
+    font-size: 1rem;
+}
+
+.nombre {
+    font-weight: 700;
+    font-size: 0.98rem;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.patente {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+}
+
+.error {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.9rem 0 0;
+    color: var(--color-debt);
+    font-size: 0.9rem;
+}
+
+.btn-texto {
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.8rem;
+    border: none;
+    background: none;
+    color: var(--color-muted);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.btn-texto:disabled {
+    opacity: 0.6;
+}
+
+/* ---------- Paso 2: carga ---------- */
+.btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: -0.4rem 0 0.4rem;
+    padding: 0.3rem 0;
+    border: none;
+    background: none;
+    color: var(--color-muted);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ya-tiene {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin: -0.4rem 0 0.9rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 12px;
+    background: var(--color-surface-raised);
+    font-size: 0.85rem;
+}
+
+.ya-tiene i {
+    color: var(--color-primary);
+}
+
+.lineas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.linea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.linea-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.linea-nombre {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.linea.activa .linea-nombre {
+    color: var(--color-primary-dark);
+}
+
+.linea-sub {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+.linea.falta .linea-sub {
+    color: var(--color-debt);
+    font-weight: 700;
+}
+
+.stepper {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.stepper button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: var(--color-bg);
+    color: var(--color-primary-dark);
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.stepper button:disabled {
+    color: var(--color-border);
+    cursor: default;
+}
+
+.stepper input {
+    width: 48px;
+    height: 38px;
+    border: none;
+    outline: none;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 800;
+    font-size: 1rem;
+    -moz-appearance: textfield;
+}
+
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.pregunta {
+    margin: 1rem 0 0;
+    padding: 0.8rem 0.9rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 14px;
+}
+
+.pregunta legend {
+    padding: 0 0.3rem;
+    font-weight: 800;
+    font-size: 0.92rem;
+}
+
+.radio {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0;
+    font-size: 0.92rem;
+    cursor: pointer;
+}
+
+.radio input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+}
+
+.btn-cargar {
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 14px;
+    background: var(--color-primary);
+    color: white;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btn-cargar:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

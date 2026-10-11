@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environments';
 import { map, Observable } from 'rxjs';
-import { Cliente, ClienteDeudaVieja, ClienteInput } from '../models/cliente.model';
+import { ActividadClientes, Cliente, ClienteDeudaVieja, ClienteInput } from '../models/cliente.model';
 
 @Injectable({
   providedIn: 'root',
@@ -50,8 +50,9 @@ export class ClienteService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  obtenerSaldoEnvases(id: string): Observable<{ productoId: string; cantidad: number }[]> {
-    return this.http.get<{ productoId: string; cantidad: number }[]>(
+  // Envases que el cliente tiene en su poder, por producto.
+  obtenerSaldoEnvases(id: string): Observable<{ productoId: string; cantidad: number; producto?: { id: string; nombre: string } }[]> {
+    return this.http.get<{ productoId: string; cantidad: number; producto?: { id: string; nombre: string } }[]>(
       `${this.baseUrl}/${id}/envases`,
     );
   }
@@ -67,6 +68,10 @@ export class ClienteService {
     return this.http.get<ClienteDeudaVieja[]>(`${this.baseUrl}/deuda-vieja`, {
       params: { dias },
     });
+  }
+
+  actividad(): Observable<ActividadClientes> {
+    return this.http.get<ActividadClientes>(`${this.baseUrl}/actividad`);
   }
 
   restaurarCliente(id: string): Observable<any> {

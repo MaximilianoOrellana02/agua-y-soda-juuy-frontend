@@ -18,6 +18,9 @@ export interface Cliente {
   latitud: number | null;
   longitud: number | null;
   ultimaVisitaFecha: string | null;
+  // Indicaciones para el repartidor: nota libre y referencia corta del lugar.
+  notaRepartidor?: string | null;
+  referencia?: string | null;
 }
 
 export interface ClienteInput {
@@ -26,6 +29,8 @@ export interface ClienteInput {
   direccion?: string;
   telefono?: string;
   localidad?: string;
+  notaRepartidor?: string;
+  referencia?: string;
   barrioId?: string;
   categoria?: CategoriaCliente;
   tipoCliente?: TipoCliente;
@@ -39,4 +44,19 @@ export interface ClienteDeudaVieja {
   apellido: string;
   saldoActual: number;
   diasSinPagar: number;
+}
+
+// Entregas con producto de cada cliente (los que nunca recibieron nada no aparecen).
+export interface ActividadCliente {
+  clienteId: string;
+  ultimaEntrega: string | null;
+  entregasUltimos30: number;
+  // 4 o más entregas en los últimos 30 días.
+  frecuente: boolean;
+}
+
+export interface ActividadClientes {
+  // Clientes con al menos una entrega en el mes en curso.
+  activosMes: number;
+  clientes: ActividadCliente[];
 }

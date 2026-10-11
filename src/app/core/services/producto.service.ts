@@ -42,9 +42,11 @@ export class ProductoService {
         });
     }
 
-    listarMovimientosStock(filtros: { productoId?: string; tipo?: 'entrada' | 'salida'; desde?: string; hasta?: string } = {}): Observable<MovimientoStock[]> {
+    // camionetaId: un id de camioneta, o 'deposito' para ver solo los movimientos del depósito.
+    listarMovimientosStock(filtros: { productoId?: string; camionetaId?: string; tipo?: 'entrada' | 'salida'; desde?: string; hasta?: string } = {}): Observable<MovimientoStock[]> {
         let params = new HttpParams();
         if (filtros.productoId) params = params.set('productoId', filtros.productoId);
+        if (filtros.camionetaId) params = params.set('camionetaId', filtros.camionetaId);
         if (filtros.tipo) params = params.set('tipo', filtros.tipo);
         if (filtros.desde) params = params.set('desde', filtros.desde);
         if (filtros.hasta) params = params.set('hasta', filtros.hasta);

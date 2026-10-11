@@ -100,6 +100,8 @@ export default class ClienteNuevo implements OnInit {
     direccion: '',
     telefono: '',
     localidad: '',
+    notaRepartidor: '',
+    referencia: '',
     barrioId: '',
     categoria: 'domicilio' as CategoriaCliente,
     tipoCliente: 'particular' as TipoCliente,

@@ -73,6 +73,18 @@
         </fieldset>
         }
     </div>
+    <label class="origen-selector" for="origenEntrega">
+        <i class="bi" [class.bi-truck]="origen()" [class.bi-house-door]="!origen()" aria-hidden="true"></i>
+        <span class="origen-label">Sale de</span>
+        <select id="origenEntrega" [ngModel]="origen() ?? ''" (ngModelChange)="cambiarOrigen($event)"
+            [disabled]="guardando() || verificandoStock() || mostrandoQR()">
+            <option value="">Depósito</option>
+            @for (c of camionetas(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }}</option>
+            }
+        </select>
+    </label>
+
     @if (detallePedido) {
     <div class="pedido-banner">
         <i class="bi bi-telephone"></i>

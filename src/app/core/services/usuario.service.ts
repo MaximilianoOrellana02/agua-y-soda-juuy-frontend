@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
-import { env } from "process";
 import { environment } from "../../../environments/environments";
+import { RolUsuario } from "./auth.service";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 
@@ -9,6 +9,7 @@ interface UsuarioNuevoInput {
     password: string;
     nombreCompleto: string;
     email: string;
+    rol: RolUsuario;
 }
 
 interface UsuarioCreado {

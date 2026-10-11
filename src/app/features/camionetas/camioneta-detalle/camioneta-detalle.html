@@ -1,0 +1,135 @@
+<div class="page">
+    <header class="page-header">
+        <a routerLink="/camionetas" class="btn-icon" aria-label="Volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h1>{{ camioneta()?.nombre ?? 'Camioneta' }}</h1>
+        <span class="btn-icon-spacer"></span>
+    </header>
+
+    @if (cargando()) {
+    <div class="state-message">
+        <div class="spinner"></div>
+    </div>
+    }
+
+    @if (error()) {
+    <div class="state-message error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+    </div>
+    }
+
+    @if (!cargando() && camioneta(); as c) {
+    @if (!c.activa) {
+    <div class="banner pendiente">
+        <i class="bi bi-exclamation-circle"></i>
+        <span>Esta camioneta está inactiva: no admite cargas ni entregas.</span>
+    </div>
+    } @else {
+    <div class="acciones-stock">
+        <button type="button" class="btn-stock carga" (click)="abrirMovimiento('carga')">Cargar</button>
+        <button type="button" class="btn-stock descarga" (click)="abrirMovimiento('descarga')"
+            [disabled]="totalUnidades() === 0">Descargar</button>
+    </div>
+    }
+
+    <p class="section-title">Stock en la camioneta · {{ totalUnidades() }} u.</p>
+
+    @if (stockConProductos().length === 0) {
+    <div class="state-message">
+        <i class="bi bi-box-seam"></i>
+        <p>La camioneta está vacía</p>
+    </div>
+    }
+
+    <ul class="lista">
+        @for (s of stockConProductos(); track s.id) {
+        <li class="item item-fijo">
+            <span class="item-icono">
+                <i class="bi" [class.bi-droplet-fill]="s.producto?.esRetornable"
+                    [class.bi-box-seam]="!s.producto?.esRetornable"></i>
+            </span>
+            <span class="item-info">
+                <span class="item-nombre">{{ s.producto?.nombre }}</span>
+                @if (s.producto && !s.producto.activo) {
+                <span class="item-sub"><span class="tag">Producto desactivado</span></span>
+                }
+            </span>
+            <span class="cantidad">{{ s.cantidad }}</span>
+        </li>
+        }
+    </ul>
+    }
+</div>
+
+@if (mostrarMovimiento()) {
+<div class="sheet-overlay" (click)="cerrarMovimiento()"></div>
+<form class="sheet" (ngSubmit)="confirmarMovimiento()">
+    <h3>{{ tipo() === 'carga' ? 'Cargar camioneta' : 'Descargar camioneta' }}</h3>
+
+    <div class="form-group">
+        <label for="productoMovimiento">Producto</label>
+        <select id="productoMovimiento" [ngModel]="productoId()" (ngModelChange)="productoId.set($event)"
+            name="productoId">
+            @if (tipo() === 'carga') {
+            @for (p of productosActivos(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+            }
+            } @else {
+            @for (s of stock(); track s.id) {
+            @if (s.cantidad > 0) {
+            <option [value]="s.productoId">{{ s.producto?.nombre ?? nombreProducto(s.productoId) }}</option>
+            }
+            }
+            }
+        </select>
+        @if (disponible() !== null) {
+        <span class="form-hint">
+            Disponible {{ tipo() === 'carga' ? 'en el depósito' : 'en la camioneta' }}: {{ disponible() }}
+        </span>
+        }
+    </div>
+
+    <div class="form-group">
+        <label for="cantidadMovimiento">Cantidad</label>
+        <input id="cantidadMovimiento" type="number" min="1" step="1" inputmode="numeric" [(ngModel)]="cantidad"
+            name="cantidad" />
+    </div>
+
+    <label class="check-row">
+        <input type="checkbox" [ngModel]="afectaStockGeneral()" (ngModelChange)="afectaStockGeneral.set($event)"
+            name="afectaStockGeneral" />
+        <span>
+            @if (tipo() === 'carga') {
+            Descontar del stock general (depósito)
+            <span class="form-hint">Destildalo si la mercadería no sale del depósito (por ejemplo, compra directa a
+                la camioneta).</span>
+            } @else {
+            Devolver al stock general (depósito)
+            <span class="form-hint">Destildalo si la mercadería se pierde (rotura, merma): no vuelve al
+                depósito.</span>
+            }
+        </span>
+    </label>
+
+    <div class="form-group">
+        <label for="motivoMovimiento">Motivo {{ motivoObligatorio() ? '(obligatorio)' : '(opcional)' }}</label>
+        <input id="motivoMovimiento" type="text" maxlength="255" [(ngModel)]="motivo" name="motivo"
+            [placeholder]="motivoObligatorio() ? 'Ej: Botella rota' : 'Ej: Carga de la mañana'" />
+    </div>
+
+    @if (errorMovimiento()) {
+    <div class="form-error">
+        <i class="bi bi-exclamation-circle"></i> {{ errorMovimiento() }}
+    </div>
+    }
+
+    <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarMovimiento()">Cancelar</button>
+        <button type="submit" class="btn-save" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando...' : 'Confirmar' }}
+        </button>
+    </div>
+</form>
+}

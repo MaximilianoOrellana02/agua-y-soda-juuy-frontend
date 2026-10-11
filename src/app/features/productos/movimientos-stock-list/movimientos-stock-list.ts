@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as XLSX from 'xlsx';
 import { ProductoService } from '../../../core/services/producto.service';
 import { MovimientoStock } from '../../../core/models/producto.model';
 import { NotificationService } from '../../../core/services/notification.service';
+import { CamionetaService } from '../../../core/services/camioneta.service';
+import { Camioneta } from '../../../core/models/camioneta.model';
 
 type FiltroTipo = 'todos' | 'entrada' | 'salida';
 
@@ -18,19 +19,32 @@ const MESES = [
 
 @Component({
   selector: 'app-movimientos-stock-list',
-  imports: [RouterLink, DatePipe, FormsModule],
+  imports: [RouterLink, FormsModule],
   templateUrl: './movimientos-stock-list.html',
   styleUrl: './movimientos-stock-list.css',
 })
 export default class MovimientosStockList implements OnInit {
   private productoService = inject(ProductoService);
   private notificationService = inject(NotificationService);
+  private camionetaService = inject(CamionetaService);
+
+  // '' = todo; 'deposito' = solo depósito; un id = solo esa camioneta.
+  origen = signal('');
+  camionetas = signal<Camioneta[]>([]);
 
   movimientos = signal<MovimientoStock[]>([]);
   cargando = signal(true);
   error = signal<string | null>(null);
   filtro = signal<FiltroTipo>('todos');
   exportando = signal(false);
+  private cargaVersion = 0;
+
+  formatearFecha(fecha: string): string {
+    const valor = new Date(fecha);
+    const mes = valor.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '');
+    const hora = valor.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    return `${valor.getDate()} ${mes.charAt(0).toUpperCase()}${mes.slice(1)}, ${hora}`;
+  }
 
   meses = MESES;
   anios: number[];
@@ -50,6 +64,15 @@ export default class MovimientosStockList implements OnInit {
 
   ngOnInit() {
     this.cargar();
+    this.camionetaService.listar(true).subscribe({
+      next: (camionetas) => this.camionetas.set(camionetas),
+      error: () => {},
+    });
+  }
+
+  cambiarOrigen(origen: string) {
+    this.origen.set(origen);
+    this.cargar();
   }
 
   private rangoFechas(): { desde?: string; hasta?: string } {
@@ -61,16 +84,22 @@ export default class MovimientosStockList implements OnInit {
   }
 
   cargar() {
+    const version = ++this.cargaVersion;
     this.cargando.set(true);
+    this.error.set(null);
+    this.movimientos.set([]);
     const filtroVal = this.filtro();
     const tipo = filtroVal === 'todos' ? undefined : filtroVal;
 
-    this.productoService.listarMovimientosStock({ tipo, ...this.rangoFechas() }).subscribe({
+    const camionetaId = this.origen() || undefined;
+    this.productoService.listarMovimientosStock({ tipo, camionetaId, ...this.rangoFechas() }).subscribe({
       next: (data) => {
+        if (this.cargaVersion !== version) return;
         this.movimientos.set(data);
         this.cargando.set(false);
       },
       error: (err) => {
+        if (this.cargaVersion !== version) return;
         this.error.set(err.error?.error ?? 'No se pudieron cargar los movimientos');
         this.cargando.set(false);
       },
@@ -109,11 +138,12 @@ export default class MovimientosStockList implements OnInit {
       Cantidad: m.cantidad,
       Motivo: m.motivo ?? '',
       Usuario: m.usuario?.nombreCompleto ?? '',
+      Origen: m.camioneta?.nombre ?? 'Depósito',
     }));
 
     const hoja = XLSX.utils.json_to_sheet(filas);
     hoja['!cols'] = [
-      { wch: 12 }, { wch: 8 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 25 }, { wch: 20 },
+      { wch: 12 }, { wch: 8 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 25 }, { wch: 20 }, { wch: 18 },
     ];
 
     const libro = XLSX.utils.book_new();

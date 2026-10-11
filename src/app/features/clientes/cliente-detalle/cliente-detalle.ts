@@ -13,12 +13,35 @@ import { HistorialService } from '../../../core/services/historial.service';
 import { Historial } from '../../../core/models/historial.model';
 import { NotificationService } from '../../../core/services/notification.service';
 
+export type EstadoMovimiento = 'saldado' | 'parcial' | 'fiado' | 'pago';
+
 export interface MovimientoItem {
   id: string;
   fechaTexto: string;
   titulo: string;
   subtitulo: string;
   monto: number;
+  estado: EstadoMovimiento;
+}
+
+const ETIQUETA_ESTADO: Record<EstadoMovimiento, string> = {
+  saldado: 'Saldado',
+  parcial: 'Parcial',
+  fiado: 'Fiado',
+  pago: 'Pago recibido',
+};
+
+const COBRO_POR_METODO: Record<string, string> = {
+  efectivo: 'Cobrado en efectivo',
+  transferencia: 'Transferencia',
+  mercadopago: 'Mercado Pago',
+};
+
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+// "lunes", "lunes y jueves", "lunes, jueves y domingo".
+function unirConY(partes: string[]): string {
+  return partes.length <= 1 ? (partes[0] ?? '') : `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}`;
 }
 
 @Component({
@@ -43,7 +66,12 @@ export default class ClienteDetalle implements OnInit {
   desactivando = signal(false);
   barrios = signal<Barrio[]>([]);
   movimientos = signal<MovimientoItem[]>([]);
+  totalMovimientos = signal(0);
   movimientosCargando = signal(false);
+  envases = signal<{ nombre: string; cantidad: number }[]>([]);
+  // Activo = recibió alguna entrega en los últimos 30 días. null mientras no se sabe.
+  activo = signal<boolean | null>(null);
+  etiquetaEstado = ETIQUETA_ESTADO;
 
   mostrarPago = signal(false);
 
@@ -84,6 +112,8 @@ export default class ClienteDetalle implements OnInit {
     direccion: '',
     telefono: '',
     localidad: '',
+    notaRepartidor: '',
+    referencia: '',
     barrioId: '',
     categoria: 'domicilio' as CategoriaCliente,
     tipoCliente: 'particular' as TipoCliente,
@@ -103,6 +133,21 @@ export default class ClienteDetalle implements OnInit {
     }
     this.cargarCliente(id);
     this.cargarMovimientos(id);
+    this.cargarEnvases(id);
+    this.clienteService.actividad().subscribe({
+      next: ({ clientes }) => this.activo.set((clientes.find((a) => a.clienteId === id)?.entregasUltimos30 ?? 0) > 0),
+      error: () => {},
+    });
+  }
+
+  private cargarEnvases(id: string) {
+    this.clienteService.obtenerSaldoEnvases(id).subscribe({
+      next: (saldos) =>
+        this.envases.set(
+          saldos.filter((s) => s.cantidad > 0).map((s) => ({ nombre: s.producto?.nombre ?? 'Envases', cantidad: s.cantidad })),
+        ),
+      error: () => {},
+    });
   }
 
   cargarCliente(id: string) {
@@ -124,73 +169,60 @@ export default class ClienteDetalle implements OnInit {
     this.movimientosCargando.set(true);
     this.historialService.porCliente(id).subscribe({
       next: (data: Historial[]) => {
-        const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-        const items: MovimientoItem[] = data.slice(0, 5).map((h) => {
-          let dia = '';
-          let mes = '';
-          const match = h.fecha.match(/^(\d{4})-(\d{2})-(\d{2})/);
-          if (match) {
-            dia = parseInt(match[3], 10).toString();
-            const mesIdx = parseInt(match[2], 10) - 1;
-            mes = meses[mesIdx] || '';
-          } else {
-            const fechaObj = new Date(h.fecha);
-            dia = !isNaN(fechaObj.getTime()) ? fechaObj.getDate().toString() : '';
-            mes = !isNaN(fechaObj.getTime()) ? meses[fechaObj.getMonth()] : '';
-          }
-          const fechaTexto = `${dia} ${mes}`.trim();
-
-          const esEntrega = (h.detalles && h.detalles.length > 0) || Number(h.importeTotal) > 0;
-          let titulo = '';
-          let subtitulo = '';
-          let monto = 0;
-
-          if (esEntrega) {
-            titulo = 'Entrega semanal';
-            const entregados = (h.detalles ?? []).reduce((acc, d) => acc + (Number(d.cantidadEntregada) || 0), 0);
-            const vacios = (h.detalles ?? []).reduce((acc, d) => acc + (Number(d.cantidadEnvaseDevuelto) || 0), 0);
-
-            if (entregados > 0 && vacios > 0) {
-              subtitulo = `+${entregados} entregados · ${vacios} vacíos`;
-            } else if (entregados > 0) {
-              subtitulo = `+${entregados} entregados`;
-            } else if (vacios > 0) {
-              subtitulo = `${vacios} vacíos`;
-            } else {
-              subtitulo = h.observacion || 'Sin productos';
-            }
-            monto = Number(h.importeTotal);
-          } else {
-            if (h.metodoPago === 'transferencia') {
-              titulo = 'Pago con transferencia';
-            } else if (h.metodoPago === 'mercadopago') {
-              titulo = 'Pago con Mercado Pago';
-            } else {
-              titulo = 'Pago en efectivo';
-            }
-            subtitulo = '—';
-            monto = Number(h.montoPagado);
-          }
-
-          if (h.ajusteSaldo) {
-            subtitulo += ` · Saldo anterior: $${h.ajusteSaldo.saldoEsperado} → $${h.ajusteSaldo.saldoNuevo} (${h.ajusteSaldo.motivo})`;
-          }
-
-          return {
-            id: h.id,
-            fechaTexto,
-            titulo,
-            subtitulo,
-            monto,
-          };
-        });
-        this.movimientos.set(items);
+        this.totalMovimientos.set(data.length);
+        this.movimientos.set(data.slice(0, 3).map((h) => this.aMovimiento(h)));
         this.movimientosCargando.set(false);
       },
       error: () => {
         this.movimientosCargando.set(false);
       },
     });
+  }
+
+  // "Entregado 2 Bidón 20 L" · "11 octubre · Cobrado en efectivo" · estado según lo que se pagó de esa entrega.
+  private aMovimiento(h: Historial): MovimientoItem {
+    const fecha = new Date(h.fecha);
+    const [, mes, dia] = fecha.toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).split('-').map(Number);
+    const fechaTexto = `${dia} ${MESES[mes - 1] ?? ''}`;
+    const importe = Number(h.importeTotal);
+    const pagado = Number(h.montoPagado);
+    const entregados = (h.detalles ?? []).filter((d) => Number(d.cantidadEntregada) > 0);
+    const devueltos = (h.detalles ?? []).reduce((acc, d) => acc + (Number(d.cantidadEnvaseDevuelto) || 0), 0);
+    const cobro = pagado > 0 ? COBRO_POR_METODO[h.metodoPago] ?? 'Cobrado' : 'Sin cobro';
+
+    let titulo: string;
+    let estado: EstadoMovimiento;
+    let monto: number;
+    if (entregados.length > 0 || importe > 0) {
+      titulo = 'Entregado ' + entregados.map((d) => `${d.cantidadEntregada} ${d.producto?.nombre ?? ''}`.trim()).join(' + ');
+      estado = pagado >= importe ? 'saldado' : pagado > 0 ? 'parcial' : 'fiado';
+      monto = importe;
+    } else if (devueltos > 0) {
+      titulo = `Devolvió ${devueltos} envase${devueltos === 1 ? '' : 's'}`;
+      estado = pagado > 0 ? 'pago' : 'saldado';
+      monto = pagado;
+    } else {
+      titulo = 'Pago recibido';
+      estado = 'pago';
+      monto = pagado;
+    }
+
+    let subtitulo = `${fechaTexto} · ${cobro}`;
+    if (h.ajusteSaldo) subtitulo += ' · Ajuste de saldo';
+    return { id: h.id, fechaTexto, titulo, subtitulo, monto, estado };
+  }
+
+  iniciales(c: Cliente): string {
+    return `${c.nombre.charAt(0)}${c.apellido.charAt(0)}`.toUpperCase();
+  }
+
+  // Abre Google Maps con la ruta hasta el cliente: por coordenadas si las tiene, si no por dirección.
+  navegarUrl(c: Cliente): string | null {
+    if (c.latitud != null && c.longitud != null) {
+      return `https://www.google.com/maps/dir/?api=1&destination=${c.latitud},${c.longitud}`;
+    }
+    const direccion = [c.direccion, c.barrio?.nombre, c.localidad || 'San Salvador de Jujuy'].filter(Boolean).join(', ');
+    return c.direccion ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccion)}` : null;
   }
 
   private sincronizarFormulario(cliente: Cliente) {
@@ -200,6 +232,8 @@ export default class ClienteDetalle implements OnInit {
       direccion: cliente.direccion ?? '',
       telefono: cliente.telefono ?? '',
       localidad: cliente.localidad ?? '',
+      notaRepartidor: cliente.notaRepartidor ?? '',
+      referencia: cliente.referencia ?? '',
       barrioId: cliente.barrioId ?? '',
       categoria: cliente.categoria,
       tipoCliente: cliente.tipoCliente,
@@ -335,11 +369,8 @@ export default class ClienteDetalle implements OnInit {
 
     if (!barrio || barrio.diasVisita.length === 0) return '';
 
-    const etiquetas = barrio.diasVisita.map((dia) => {
-      const encontrado = DIAS_SEMANA.find((d) => d.valor === dia);
-      return encontrado?.etiqueta ?? dia;
-    })
-    return `Reparto ${etiquetas.join(' y ')}`;
+    const etiquetas = barrio.diasVisita.map((dia) => DIAS_SEMANA.find((d) => d.valor === dia)?.etiqueta ?? dia);
+    return unirConY(etiquetas);
 
   }
 }

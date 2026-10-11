@@ -7,8 +7,13 @@
         <button class="btn-back" (click)="volverAlMenu()" aria-label="Volver">
             <i class="bi bi-arrow-left"></i>
         </button>
+        } @else {
+        <span class="header-icon"><i class="bi bi-gear"></i></span>
         }
-        <h2>{{ vista() === 'menu' ? 'Configuración' : 'Cambiar contraseña' }}</h2>
+        <div class="header-copy">
+            <h2>{{ vista() === 'menu' ? 'Configuración' : 'Cambiar contraseña' }}</h2>
+            <span>{{ vista() === 'menu' ? 'Preferencias de reparto y sistema' : 'Actualizá tus credenciales de acceso' }}</span>
+        </div>
         <button class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar">
             <i class="bi bi-x-lg"></i>
         </button>
@@ -16,48 +21,75 @@
 
     @if (vista() === 'menu') {
     <div class="sheet-body">
-        <div class="option-row">
-            <div class="option-info">
-                <i class="bi bi-moon-stars"></i>
-                <span>Modo oscuro</span>
+        @if (authService.usuarioActual(); as usuario) {
+        <div class="user-card">
+            <span class="user-avatar">{{ inicialesUsuario() }}</span>
+            <div class="user-copy">
+                <strong>{{ usuario.nombreCompleto }}</strong>
+                <span>{{ authService.esAdmin() ? 'Administrador' : 'Repartidor' }}{{ camionetaService.camionetaDelDia() ? ' · ' + camionetaService.camionetaDelDia()!.nombre : '' }}</span>
             </div>
-            <button class="switch" [class.on]="themeService.tema() === 'dark'" (click)="toggleTheme()" role="switch"
-                [attr.aria-checked]="themeService.tema() === 'dark'">
-                <span class="switch-thumb"></span>
-            </button>
+            @if (camionetaService.camionetaDelDia()) {
+            <span class="route-pill">En ruta</span>
+            }
+        </div>
+        }
+
+        <div class="settings-group">
+            <h3>Preferencias de aplicación</h3>
+            <div class="option-card">
+                <div class="option-row">
+                    <span class="option-icon"><i class="bi bi-moon-stars"></i></span>
+                    <span class="option-copy"><strong>Modo oscuro</strong><small>Ajusta el contraste para reparto nocturno</small></span>
+                    <button type="button" class="switch" [class.on]="themeService.tema() === 'dark'" (click)="toggleTheme()" role="switch"
+                        aria-label="Modo oscuro" [attr.aria-checked]="themeService.tema() === 'dark'">
+                        <span class="switch-thumb"></span>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <a routerLink="/barrios" class="option-row option-action" (click)="cerrar.emit()">
-            <div class="option-info">
-                <i class="bi bi-signpost-2"></i>
-                <span>Gestionar barrios</span>
+        <div class="settings-group">
+            <h3>Gestión y logística</h3>
+            <div class="option-card">
+                <a routerLink="/barrios" class="option-row option-action" (click)="cerrar.emit()">
+                    <span class="option-icon"><i class="bi bi-geo-alt"></i></span>
+                    <span class="option-copy"><strong>Gestionar barrios</strong><small>Zonas asignadas y frecuencias</small></span>
+                    @if (totalBarrios() !== null) { <span class="count-pill">{{ totalBarrios() }} sectores</span> }
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a routerLink="/camionetas" class="option-row option-action" (click)="cerrar.emit()">
+                    <span class="option-icon"><i class="bi bi-truck"></i></span>
+                    <span class="option-copy"><strong>Camionetas</strong><small>Flota y cargas de soda / bidones</small></span>
+                    @if (totalCamionetas() !== null) { <span class="count-pill active">{{ totalCamionetas() }} activas</span> }
+                    <i class="bi bi-chevron-right"></i>
+                </a>
             </div>
-            <i class="bi bi-chevron-right"></i>
-        </a>
-        <a routerLink="/usuarios/nuevo" class="option-row option-action" (click)="cerrar.emit()">
-            <div class="option-info">
-                <i class="bi bi-person-plus"></i>
-                <span>Agregar usuario</span>
-            </div>
-            <i class="bi bi-chevron-right"></i>
-        </a>
+        </div>
 
-        <button class="option-row option-action" (click)="irAPassword()">
-            <div class="option-info">
-                <i class="bi bi-key"></i>
-                <span>Cambiar contraseña</span>
+        <div class="settings-group">
+            <h3>Cuenta y acceso</h3>
+            <div class="option-card">
+                @if (authService.esAdmin()) {
+                <a routerLink="/usuarios/nuevo" class="option-row option-action" (click)="cerrar.emit()">
+                    <span class="option-icon"><i class="bi bi-person-plus"></i></span>
+                    <span class="option-copy"><strong>Agregar usuario</strong><small>Crear acceso para el equipo</small></span>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                }
+                <button type="button" class="option-row option-action" (click)="irAPassword()">
+                    <span class="option-icon"><i class="bi bi-key"></i></span>
+                    <span class="option-copy"><strong>Cambiar contraseña</strong><small>Actualizar credenciales de acceso</small></span>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+                <button type="button" class="option-row option-action logout-row" (click)="logout()">
+                    <span class="option-icon"><i class="bi bi-box-arrow-right"></i></span>
+                    <span class="option-copy"><strong>Cerrar sesión</strong><small>Salir de esta cuenta</small></span>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
             </div>
-            <i class="bi bi-chevron-right"></i>
-        </button>
-
-        <button class="option-row option-action" (click)="logout()">
-            <div class="option-info">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Cerrar sesión</span>
-            </div>
-            <i class="bi bi-chevron-right"></i>
-        </button>
+        </div>
     </div>
+    <div class="sheet-footer"><span class="online-dot" [class.offline]="!enLinea()"></span> Sodería Móvil <span class="footer-separator">·</span> {{ enLinea() ? 'En línea' : 'Sin conexión' }}</div>
     }
 
     @if (vista() === 'password') {

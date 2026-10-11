@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductoService } from '../../../core/services/producto.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { precioVigente, Producto } from '../../../core/models/producto.model';
 
 @Component({
@@ -11,6 +12,7 @@ import { precioVigente, Producto } from '../../../core/models/producto.model';
 })
 export default class ProductosList implements OnInit {
   private productoService = inject(ProductoService);
+  authService = inject(AuthService);
 
   productos = signal<Producto[]>([]);
   cargando = signal(true);
@@ -36,10 +38,6 @@ export default class ProductosList implements OnInit {
 
   precioParticular(p: Producto): number | null {
     return precioVigente(p, 'particular');
-  }
-
-  precioConfianza(p: Producto): number | null {
-    return precioVigente(p, 'confianza');
   }
 
   get productosStockBajo(): Producto[] {

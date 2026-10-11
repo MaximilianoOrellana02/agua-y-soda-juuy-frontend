@@ -15,7 +15,7 @@ export class PrecioHistorialModal {
   cerrar = output<void>();
 
   get ordenados(): PrecioProducto[] {
-    return [...this.precios()].sort(
+    return this.precios().filter((precio) => precio.tipoCliente === 'particular').sort(
       (a, b) => new Date(b.fechaDesde).getTime() - new Date(a.fechaDesde).getTime()
     );
   }

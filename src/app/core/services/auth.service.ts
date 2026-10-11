@@ -1,17 +1,24 @@
-import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, inject, PLATFORM_ID, computed } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environments';
+
+export type RolUsuario = 'admin' | 'repartidor';
+
+export interface UsuarioSesion {
+  id: string;
+  username: string;
+  nombreCompleto: string;
+  email?: string;
+  // Las sesiones guardadas antes de que existieran los roles no lo tienen hasta refrescar con /me.
+  rol?: RolUsuario;
+}
 
 interface LoginResponse {
   token: string;
-  usuario: {
-    id: string;
-    username: string;
-    nombreCompleto: string;
-    email?: string;
-  };
+  usuario: UsuarioSesion;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +26,9 @@ export class AuthService {
   private platformId = inject(PLATFORM_ID);
   private esNavegador = isPlatformBrowser(this.platformId);
 
-  usuarioActual = signal<LoginResponse['usuario'] | null>(null);
+  usuarioActual = signal<UsuarioSesion | null>(null);
+  // Solo oculta opciones en la interfaz: el backend es quien hace cumplir los permisos.
+  esAdmin = computed(() => this.usuarioActual()?.rol === 'admin');
 
   constructor(
     private http: HttpClient,
@@ -43,9 +52,22 @@ export class AuthService {
   guardarSesion(respuesta: LoginResponse) {
     if (this.esNavegador) {
       localStorage.setItem('token', respuesta.token);
-      localStorage.setItem('usuario', JSON.stringify(respuesta.usuario));
     }
-    this.usuarioActual.set(respuesta.usuario);
+    this.guardarUsuario(respuesta.usuario);
+  }
+
+  // Trae los datos actuales del usuario (por ejemplo, si un admin le cambio el rol).
+  refrescarUsuario(): Observable<UsuarioSesion> {
+    return this.http
+      .get<UsuarioSesion>(`${environment.apiUrl}/usuarios/me`)
+      .pipe(tap((usuario) => this.guardarUsuario(usuario)));
+  }
+
+  private guardarUsuario(usuario: UsuarioSesion) {
+    if (this.esNavegador) {
+      localStorage.setItem('usuario', JSON.stringify(usuario));
+    }
+    this.usuarioActual.set(usuario);
   }
 
   logout() {

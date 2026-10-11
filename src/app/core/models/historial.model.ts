@@ -20,6 +20,8 @@ export interface HistorialInput {
     observacion?: string;
     metodoPago?: MetodoPago;
     pedidoId?: string;
+    // null = sale del depósito; un id = sale de esa camioneta. Sin enviar: la camioneta elegida hoy.
+    camionetaId?: string | null;
     detalles: HistorialDetalleInput[];
     ajusteSaldo?: AjusteSaldo;
 }
@@ -36,6 +38,8 @@ export interface Historial {
     observacion: string | null;
     cliente?: { id: string; nombre: string; apellido: string };
     usuario?: { id: string; nombreCompleto: string };
+    camionetaId?: string | null;
+    camioneta?: { id: string; nombre: string } | null;
     detalles?: HistorialDetalle[];
     metodoPago: MetodoPago;
     ajusteSaldo?: AjusteSaldo | null;

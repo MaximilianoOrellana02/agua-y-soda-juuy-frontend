@@ -251,3 +251,40 @@
         transform: none;
     }
 }
+
+/* ---------- Camioneta del día ---------- */
+.navbar-camioneta {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.3rem;
+    max-width: 100%;
+    margin-top: 0.15rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.navbar-camioneta .bi-chevron-down {
+    font-size: 0.65rem;
+}
+
+.navbar-camioneta.sin-camioneta {
+    color: var(--color-warning);
+}
+
+.navbar-camioneta:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}

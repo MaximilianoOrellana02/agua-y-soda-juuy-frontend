@@ -27,27 +27,39 @@
     }
 
     @if (producto(); as p) {
+    @if (!editando()) {
     <div class="profile-card">
         <div class="product-icon-lg">
             <i class="bi" [class.bi-droplet-fill]="p.esRetornable" [class.bi-box-seam-fill]="!p.esRetornable"></i>
         </div>
-        <div class="profile-name">{{ p.nombre }}</div>
-        @if (p.esRetornable) {
-        <span class="product-tag">Retornable</span>
+        <h2 class="profile-name">{{ p.nombre }}</h2>
+        <div class="product-meta">
+            <span class="product-tag">{{ p.esRetornable ? 'Retornable' : 'No retornable' }}</span>
+            <span class="meta-separator">·</span>
+            <span>{{ p.esRetornable ? 'Envase retornable' : 'Producto de venta' }}</span>
+        </div>
         <div class="stock-card">
-            <div class="stock-info">
-                <span class="stock-label">Stock actual</span>
-                <span class="stock-value" [class.stock-bajo]="p.stockActual <= p.stockMinimo && p.stockMinimo > 0">
-                    {{ p.stockActual }}
-                </span>
+            <div class="stock-main">
+                <div class="stock-info">
+                    <span class="stock-label">Stock en depósito</span>
+                    <div class="stock-quantity">
+                        <span class="stock-value" [class.stock-bajo]="p.stockActual <= p.stockMinimo && p.stockMinimo > 0">{{ p.stockActual }}</span>
+                        <span class="stock-unit">u. disponibles</span>
+                    </div>
+                </div>
+                <div class="stock-buttons">
+                    <button type="button" class="btn-stock entrada" (click)="abrirMovimiento('entrada')">
+                        <i class="bi bi-plus-lg"></i> Entrada
+                    </button>
+                    <button type="button" class="btn-stock salida" (click)="abrirMovimiento('salida')">
+                        <i class="bi bi-dash-lg"></i> Salida
+                    </button>
+                </div>
             </div>
-            <div class="stock-buttons">
-                <button class="btn-stock entrada" (click)="abrirMovimiento('entrada')">
-                    <i class="bi bi-plus-lg"></i> Entrada
-                </button>
-                <button class="btn-stock salida" (click)="abrirMovimiento('salida')">
-                    <i class="bi bi-dash-lg"></i> Salida
-                </button>
+            <div class="stock-status" [class.low]="p.stockActual <= p.stockMinimo && p.stockMinimo > 0" [class.neutral]="p.stockMinimo === 0">
+                <span class="status-dot"></span>
+                {{ p.stockMinimo === 0 ? 'Sin mínimo configurado' : p.stockActual <= p.stockMinimo ? 'Stock bajo' : 'Stock saludable' }}
+                @if (p.stockMinimo > 0) { <span>(Mínimo: {{ p.stockMinimo }} u.)</span> }
             </div>
         </div>
 
@@ -81,23 +93,31 @@
             </div>
         </div>
         }
-        }
     </div>
 
-    @if (!editando()) {
-    <div class="fields-card">
-        <div class="field-row">
-            <i class="bi bi-tag-fill"></i>
-            <div>
-                <span class="field-label">Precio</span>
-                <span class="field-value price-mono">{{ p | precioParticular }}</span>
-            </div>
+    <div class="price-card">
+        <span class="price-icon"><i class="bi bi-tag-fill"></i></span>
+        <div class="price-info">
+            <span class="field-label">Precio venta</span>
+            <div class="price-line"><strong>{{ p | precioParticular }}</strong><span>/ unidad</span></div>
+        </div>
+        <span class="price-badge">Particular</span>
+    </div>
+
+    <button type="button" class="btn-ver-historial-precios" (click)="abrirHistorialPrecios()">
+        <i class="bi bi-graph-up-arrow"></i> Ver historial de precios <i class="bi bi-chevron-right"></i>
+    </button>
+
+    <div class="product-summary">
+        <div class="summary-card">
+            <span class="summary-icon"><i class="bi bi-box-seam"></i></span>
+            <div><span>Stock mínimo</span><strong>{{ p.stockMinimo }} u. en depósito</strong></div>
+        </div>
+        <div class="summary-card">
+            <span class="summary-icon blue"><i class="bi bi-check-circle"></i></span>
+            <div><span>Estado</span><strong>{{ p.activo ? 'Activo' : 'Inactivo' }}</strong></div>
         </div>
     </div>
-
-    <button class="btn-ver-historial-precios" (click)="abrirHistorialPrecios()">
-        <i class="bi bi-graph-up"></i> Ver historial de precios
-    </button>
     }
 
 
@@ -112,11 +132,13 @@
             <label for="nombre">Nombre del producto *</label>
             <input id="nombre" type="text" [(ngModel)]="nombre" name="nombre" />
         </div>
+        @if (authService.esAdmin()) {
         <div class="form-group">
             <label for="precioParticular">Precio *</label>
             <input id="precioParticular" type="number" min="0" step="0.01" [(ngModel)]="precioParticular"
                 name="precioParticular" />
         </div>
+        }
         <div class="form-group">
             <label for="stockMinimo">Alertar cuando el stock baje de</label>
             <input id="stockMinimo" type="number" min="0" [(ngModel)]="stockMinimo" name="stockMinimo" />

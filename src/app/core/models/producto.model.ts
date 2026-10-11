@@ -35,6 +35,8 @@ export interface MovimientoStock {
     fecha: string;
     producto?: { id: string; nombre: string };
     usuario?: { id: string; nombreCompleto: string };
+    camionetaId?: string | null;
+    camioneta?: { id: string; nombre: string } | null; // null = movimiento del depósito
 }
 
 export function precioVigente(producto: Producto, tipoCliente: TipoCliente): number | null {

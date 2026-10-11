@@ -4,13 +4,14 @@ import { ProductoService } from '../../../core/services/producto.service';
 import { precioVigente, Producto } from '../../../core/models/producto.model';
 import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { PrecioParticularPipe, PrecioConfianzaPipe } from '../../../shared/precio.pipe';
+import { PrecioParticularPipe } from '../../../shared/precio.pipe';
 import { PrecioHistorialModal } from '../../../shared/precio-historial-modal/precio-historial-modal';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-producto-detalle',
-  imports: [RouterLink, FormsModule, PrecioConfianzaPipe, PrecioParticularPipe, PrecioHistorialModal],
+  imports: [RouterLink, FormsModule, PrecioParticularPipe, PrecioHistorialModal],
   templateUrl: './producto-detalle.html',
   styleUrl: './producto-detalle.css',
 })
@@ -19,6 +20,7 @@ export default class ProductoDetalle implements OnInit {
   private router = inject(Router);
   private productoService = inject(ProductoService);
   private notificationService = inject(NotificationService);
+  authService = inject(AuthService);
 
   producto = signal<Producto | null>(null);
   cargando = signal(true);
@@ -27,7 +29,6 @@ export default class ProductoDetalle implements OnInit {
   guardando = signal(false);
 
   precioParticular = 0;
-  precioConfianza = 0;
 
   nombre = '';
   esRetornable = true;
@@ -84,7 +85,6 @@ export default class ProductoDetalle implements OnInit {
 
   private sincronizarFormulario(producto: Producto) {
     this.precioParticular = precioVigente(producto, 'particular') ?? 0;
-    this.precioConfianza = precioVigente(producto, 'confianza') ?? 0;
     this.nombre = producto.nombre;
     this.esRetornable = producto.esRetornable;
     this.stockMinimo = producto.stockMinimo;
@@ -123,7 +123,8 @@ export default class ProductoDetalle implements OnInit {
 
     const nuevoParticular = precioVigente(actual, 'particular') ?? 0;
 
-    if (this.precioParticular !== nuevoParticular) {
+    // Solo un admin puede cambiar precios (el backend responde 403 a los demás).
+    if (this.authService.esAdmin() && this.precioParticular !== nuevoParticular) {
       llamadas.push(this.productoService.cambiarPrecio(actual.id, 'particular', this.precioParticular));
       llamadas.push(this.productoService.cambiarPrecio(actual.id, 'confianza', this.precioParticular));
     }

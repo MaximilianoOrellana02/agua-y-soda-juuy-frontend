@@ -7,30 +7,40 @@
         <span class="btn-icon-spacer"></span>
     </header>
 
-    <div class="periodo-selector">
-        <select [(ngModel)]="mesSeleccionado" (change)="cambiarMesAnio()" [disabled]="verTodos()">
+    <div class="periodo-selector date-selector">
+        <select [(ngModel)]="mesSeleccionado" (change)="cambiarMesAnio()" [disabled]="verTodos()" aria-label="Mes">
             @for (m of meses; track m.valor) {
-            <option [value]="m.valor">{{ m.etiqueta }}</option>
+            <option [ngValue]="m.valor">{{ m.etiqueta }}</option>
             }
         </select>
-        <select [(ngModel)]="anioSeleccionado" (change)="cambiarMesAnio()" [disabled]="verTodos()">
+        <select [(ngModel)]="anioSeleccionado" (change)="cambiarMesAnio()" [disabled]="verTodos()" aria-label="Año">
             @for (a of anios; track a) {
-            <option [value]="a">{{ a }}</option>
+            <option [ngValue]="a">{{ a }}</option>
             }
         </select>
-        <button class="chip" [class.active]="verTodos()" (click)="toggleVerTodos()">Todos</button>
+        <button type="button" class="chip period-all" [class.active]="verTodos()" (click)="toggleVerTodos()">Todos</button>
     </div>
 
     <div class="filter-chips">
-        <button class="chip" [class.active]="filtro() === 'todos'" (click)="cambiarFiltro('todos')">Todos los
+        <button type="button" class="chip" [class.active]="filtro() === 'todos'" (click)="cambiarFiltro('todos')">Todos los
             tipos</button>
-        <button class="chip" [class.active]="filtro() === 'entrada'"
+        <button type="button" class="chip" [class.active]="filtro() === 'entrada'"
             (click)="cambiarFiltro('entrada')">Entradas</button>
-        <button class="chip" [class.active]="filtro() === 'salida'" (click)="cambiarFiltro('salida')">Salidas</button>
+        <button type="button" class="chip" [class.active]="filtro() === 'salida'" (click)="cambiarFiltro('salida')">Salidas</button>
+    </div>
+
+    <div class="periodo-selector origin-selector">
+        <select [ngModel]="origen()" (ngModelChange)="cambiarOrigen($event)" aria-label="Origen del stock">
+            <option value="">Depósito y camionetas</option>
+            <option value="deposito">Solo depósito</option>
+            @for (c of camionetas(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }}</option>
+            }
+        </select>
     </div>
 
     @if (movimientos().length > 0) {
-    <button class="btn-exportar" (click)="exportarExcel()" [disabled]="exportando()">
+    <button type="button" class="btn-exportar" (click)="exportarExcel()" [disabled]="exportando()">
         <i class="bi bi-file-earmark-excel"></i>
         {{ exportando() ? 'Generando...' : 'Exportar a Excel' }}
     </button>
@@ -61,14 +71,15 @@
         @for (m of movimientos(); track m.id) {
         <li class="movimiento-card" [class.is-entrada]="m.tipo === 'entrada'" [class.is-salida]="m.tipo === 'salida'">
             <div class="movimiento-icon">
-                <i class="bi" [class.bi-arrow-down-circle-fill]="m.tipo === 'entrada'"
-                    [class.bi-arrow-up-circle-fill]="m.tipo === 'salida'"></i>
+                <i class="bi" [class.bi-arrow-down]="m.tipo === 'entrada'"
+                    [class.bi-arrow-up]="m.tipo === 'salida'"></i>
             </div>
 
             <div class="movimiento-info">
                 <span class="movimiento-producto">{{ m.producto?.nombre }}</span>
                 <span class="movimiento-meta">
-                    {{ m.fecha | date:'d MMM, HH:mm' }} · {{ m.usuario?.nombreCompleto }}
+                    {{ formatearFecha(m.fecha) }} · {{ m.usuario?.nombreCompleto }} ·
+                    @if (m.camioneta) { <i class="bi bi-truck"></i> {{ m.camioneta.nombre }} } @else { Depósito }
                 </span>
                 @if (m.motivo) {
                 <span class="movimiento-motivo">{{ m.motivo }}</span>

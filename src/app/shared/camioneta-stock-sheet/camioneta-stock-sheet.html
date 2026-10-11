@@ -1,0 +1,56 @@
+<div class="backdrop" (click)="cerrar.emit()"></div>
+
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tituloStockCamioneta">
+    <div class="sheet-header">
+        <div class="titulo">
+            <i class="bi bi-truck" aria-hidden="true"></i>
+            <div>
+                <h2 id="tituloStockCamioneta">{{ camionetaService.camionetaDelDia()?.nombre }}</h2>
+                <span class="subtitulo">Stock actual · {{ total() }} u.</span>
+            </div>
+        </div>
+        <button class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="sheet-body">
+        @if (cargando() && camionetaService.stockDelDia() === null) {
+        <div class="estado"><div class="spinner"></div></div>
+        } @else if (error()) {
+        <p class="estado error"><i class="bi bi-exclamation-circle"></i> {{ error() }}</p>
+        } @else if (conStock().length === 0) {
+        <p class="estado">
+            <i class="bi bi-box-seam"></i>
+            La camioneta está vacía
+        </p>
+        } @else {
+        <ul class="lista">
+            @for (s of conStock(); track s.id) {
+            <li class="fila">
+                <span class="producto">
+                    <i class="bi" [class.bi-droplet-fill]="s.producto?.esRetornable"
+                        [class.bi-box-seam-fill]="!s.producto?.esRetornable" aria-hidden="true"></i>
+                    {{ s.producto?.nombre }}
+                </span>
+                <span class="cantidad">{{ s.cantidad }}</span>
+            </li>
+            }
+        </ul>
+        }
+
+        <div class="acciones">
+            <button type="button" class="btn-primario" (click)="repartoService.cargarCamioneta()">
+                <i class="bi bi-box-arrow-in-down"></i> Cargar
+            </button>
+            <button type="button" class="btn-secundario" (click)="repartoService.cambiarCamioneta()">
+                <i class="bi bi-arrow-left-right"></i> Cambiar
+            </button>
+        </div>
+        @if (camionetaService.camionetaDelDia(); as c) {
+        <a class="link-detalle" [routerLink]="['/camionetas', c.id]" (click)="cerrar.emit()">
+            Descargar o ver más <i class="bi bi-chevron-right"></i>
+        </a>
+        }
+    </div>
+</div>

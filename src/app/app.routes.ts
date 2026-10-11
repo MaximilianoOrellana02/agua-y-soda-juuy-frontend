@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { publicGuard } from './core/guards/public.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import path from 'path';
 
 export const routes: Routes = [
@@ -41,6 +42,7 @@ export const routes: Routes = [
       },
       {
         path: 'productos/nuevo',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/productos/producto-nuevo/producto-nuevo'),
       },
       {
@@ -69,7 +71,16 @@ export const routes: Routes = [
       },
       {
         path: 'usuarios/nuevo',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/usuarios/usuario-nuevo/usuario-nuevo')
+      },
+      {
+        path: 'camionetas',
+        loadComponent: () => import('./features/camionetas/camionetas-list/camionetas-list')
+      },
+      {
+        path: 'camionetas/:id',
+        loadComponent: () => import('./features/camionetas/camioneta-detalle/camioneta-detalle')
       },
       {
         path: 'hoy',

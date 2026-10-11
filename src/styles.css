@@ -35,6 +35,45 @@ body {
   transition: background 0.2s ease;
 }
 
+/* Leaflet crea estos marcadores fuera del alcance de los estilos del componente. */
+app-ruta-mapa-modal .leaflet-marker-icon.marcador-inicio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #1abf7d;
+  color: white;
+  font-size: 1rem;
+  box-shadow: 0 0 0 3px white;
+}
+
+app-ruta-mapa-modal .leaflet-marker-icon.marcador-numerado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #d45122;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-sizing: border-box;
+  box-shadow: 0 2px 7px rgba(36, 28, 20, 0.18);
+}
+
+app-ruta-mapa-modal .leaflet-marker-icon.marcador-destino {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #11a76e;
+  color: white;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  box-shadow: 0 2px 7px rgba(36, 28, 20, 0.18);
+}
+
 /* Los componentes de ruta quedan fuera del encapsulado CSS del shell.
    Solo animamos opacidad para conservar la posición de sus elementos fijos. */
 @media (prefers-reduced-motion: no-preference) {
