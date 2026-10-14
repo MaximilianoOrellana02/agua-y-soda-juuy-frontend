@@ -40,6 +40,7 @@
     }
 
     @if (!cargando() && !error()) {
+    @if (repartoService.comenzadoHoy()) {
     <label class="buscador">
         <i class="bi bi-search" aria-hidden="true"></i>
         <input type="search" placeholder="Buscar dirección, cliente o pedido..." [value]="busqueda()"
@@ -50,6 +51,8 @@
         </button>
         }
     </label>
+
+    }
 
     <div class="resumen-fila">
         @if (repartoService.comenzadoHoy() === false) {
@@ -173,6 +176,7 @@
     }
     }
 
+    @if (repartoService.comenzadoHoy()) {
     <div class="paradas-header">
         <h2>Próximas paradas</h2>
         <span class="paradas-count">{{ paradasPendientes().length }} pendientes</span>
@@ -255,6 +259,7 @@
         </div>
         }
     </div>
+    }
     }
     }
 </div>
